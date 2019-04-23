@@ -4,6 +4,10 @@ import re
 
 from typing import List, Match, Optional, Pattern, Tuple, Type, Union
 
+
+__all__ = ['tokenize_grammar_file']
+
+
 RE_WHITESPACE = re.compile(r'(\s+)')
 
 RE_RULE_DEF = re.compile(r'(' + re.escape(RuleDefinitionToken.match_text) + r')')
