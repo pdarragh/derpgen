@@ -1,18 +1,23 @@
 from dataclasses import dataclass
+from typing import List, Type
 
 
 @dataclass
 class VgfToken:
     text: str
 
+    def __repr__(self) -> str:
+        return self.text
 
-class LiteralToken(VgfToken):
+
+class CommentToken(VgfToken):
+    def __repr__(self) -> str:
+        return '#' + self.text
+
+
+class StringToken(VgfToken):
     def __repr__(self) -> str:
         return f"'{self.text}'"
-
-
-class SpecialToken(VgfToken):
-    pass
 
 
 class BracedTextToken(VgfToken):
@@ -29,7 +34,11 @@ class CapitalWordToken(VgfToken):
     pass
 
 
-class ParameterToken(VgfToken):
+class AllCapitalWordToken(VgfToken):
+    pass
+
+
+class LowercaseWordToken(VgfToken):
     pass
 
 
@@ -40,6 +49,17 @@ class ConstantToken(VgfToken):
         if self.match_text is None:
             raise RuntimeError("Initialization of ConstantToken without match_text specified.")
         super().__init__(self.match_text)
+
+    def __repr__(self) -> str:
+        return self.match_text
+
+
+class RuleDefinitionToken(ConstantToken):
+    match_text = '::='
+
+
+class ProductionSeparationToken(ConstantToken):
+    match_text = '|'
 
 
 class ColonToken(ConstantToken):
@@ -66,7 +86,9 @@ class OptionalToken(ConstantToken):
     match_text = '?'
 
 
-CONSTANT_TOKENS = [
+CONSTANT_TOKENS: List[Type[ConstantToken]] = [
+    RuleDefinitionToken,
+    ProductionSeparationToken,
     ColonToken,
     ListToken,
     NonemptyListToken,
