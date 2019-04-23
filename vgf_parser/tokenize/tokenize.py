@@ -76,16 +76,20 @@ class LongestRegexMatcher:
         return self._match.end()
 
     @property
+    def length(self) -> int:
+        return self.end
+
+    @property
     def line_repr(self) -> str:
         return repr(self._line)
 
     def group(self, grp: Union[int, str]) -> str:
         return self._match.group(grp)
 
-    def emit(self) -> VgfToken:
+    def emit(self, line_no: int, char_no: int) -> VgfToken:
         if self._match is None:
             raise TokenizerError(f"No match produced for line: {self.line_repr}")
-        return self._cls(self.group(1))
+        return self._cls(self.group(1), line_no, char_no)
 
     def advance(self):
         self._line = self._line[self.end:]
@@ -102,16 +106,18 @@ def tokenize_grammar_file(filename: str) -> List[VgfToken]:
     with open(filename) as f:
         for line in f:
             line_no += 1
-            tokenize_line(line, tokens)
+            tokenize_line(line, line_no, tokens)
     return tokens
 
 
-def tokenize_line(line: str, tokens: List[VgfToken]):
+def tokenize_line(line: str, line_no: int, tokens: List[VgfToken]):
     if not line:
         return
     matcher = LongestRegexMatcher(line)
+    char_no = 1
     while matcher:
         for pattern, cls in ALL_RES:
             matcher.match(pattern, cls)
-        tokens.append(matcher.emit())
+        tokens.append(matcher.emit(line_no, char_no))
+        char_no += matcher.length
         matcher.advance()

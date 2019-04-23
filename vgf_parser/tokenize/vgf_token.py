@@ -4,9 +4,14 @@ from dataclasses import dataclass
 @dataclass
 class VgfToken:
     text: str
+    line_no: int
+    char_no: int
 
     def __str__(self) -> str:
         return self.text
+
+    def __len__(self) -> int:
+        return len(self.text)
 
 
 class WhitespaceToken(VgfToken):
@@ -48,10 +53,10 @@ class LowercaseWordToken(VgfToken):
 class ConstantToken(VgfToken):
     match_text = None
 
-    def __init__(self, text: str):
+    def __init__(self, *args, **kwargs):
         if self.match_text is None:
             raise RuntimeError("Initialization of ConstantToken without match_text specified.")
-        super().__init__(text)
+        super().__init__(*args, **kwargs)
 
     def __str__(self) -> str:
         return self.match_text
