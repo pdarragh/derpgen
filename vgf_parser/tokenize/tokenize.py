@@ -2,9 +2,18 @@ from .vgf_token import *
 
 import re
 
-from typing import Dict, List, Match, NamedTuple, Optional, Pattern, Tuple, Union
+from typing import List, Match, Optional, Pattern, Tuple, Type, Union
 
-RE_WHITESPACE = re.compile(r'\s+')
+RE_WHITESPACE = re.compile(r'(\s+)')
+
+RE_RULE_DEF = re.compile(r'(' + re.escape(RuleDefinitionToken.match_text) + r')')
+RE_PROD_SEP = re.compile(r'(' + re.escape(ProductionSeparationToken.match_text) + r')')
+RE_COLON = re.compile(r'(' + re.escape(ColonToken.match_text) + r')')
+RE_LIST = re.compile(r'(' + re.escape(ListToken.match_text) + r')')
+RE_NONEMPTY_LIST = re.compile(r'(' + re.escape(NonemptyListToken.match_text) + r')')
+RE_SEP_LIST = re.compile(r'(' + re.escape(SeparatedListToken.match_text) + r')')
+RE_NONEMPTY_SEP_LIST = re.compile(r'(' + re.escape(NonemptySeparatedListToken.match_text) + r')')
+RE_OPTIONAL = re.compile(r'(' + re.escape(OptionalToken.match_text) + r')')
 
 RE_COMMENT = re.compile(r'#(.*)$')
 RE_STRING = re.compile(r'\"((?:\\.|[^\"\\])*)\"'
@@ -12,13 +21,22 @@ RE_STRING = re.compile(r'\"((?:\\.|[^\"\\])*)\"'
                        r'\'((?:\\.|[^\'\\])*)\'')
 RE_BRACED_TEXT = re.compile(r'{([^}]+)}')
 RE_BRACKETED_TEXT = re.compile(r'<([^>]+)>')
-RE_CAPITAL_TEXT = re.compile(r'([A-Z][a-z_]+)')  # This pattern *must* be used before RE_ALL_CAPITAL_TEXT.
+RE_CAPITAL_TEXT = re.compile(r'([A-Z][a-z_]+)')
 RE_ALL_CAPITAL_TEXT = re.compile(r'([A-Z_]+)')
 RE_LOWERCASE_TEXT = re.compile(r'([a-z_]+)')
 
-CONSTANT_TOKEN_RES: List[Tuple[Pattern, Type[ConstantToken]]] = [(re.compile(re.escape(cls.match_text)), cls)
-                                                                 for cls in CONSTANT_TOKENS]
-NON_CONSTANT_RES: List[Tuple[Pattern, Type[VgfToken]]] = [
+ALL_RES: List[Tuple[Pattern, Type[VgfToken]]] = [
+    (RE_WHITESPACE, WhitespaceToken),
+
+    (RE_RULE_DEF, RuleDefinitionToken),
+    (RE_PROD_SEP, ProductionSeparationToken),
+    (RE_COLON, ColonToken),
+    (RE_LIST, ListToken),
+    (RE_NONEMPTY_LIST, NonemptyListToken),
+    (RE_SEP_LIST, SeparatedListToken),
+    (RE_NONEMPTY_SEP_LIST, NonemptySeparatedListToken),
+    (RE_OPTIONAL, OptionalToken),
+
     (RE_COMMENT, CommentToken),
     (RE_STRING, StringToken),
     (RE_BRACED_TEXT, BracedTextToken),
@@ -37,22 +55,42 @@ class TokenizerError(RuntimeError):
 #   http://code.activestate.com/recipes/456151-using-rematch-research-and-regroup-in-if-elif-elif/
 class LongestRegexMatcher:
     def __init__(self, line: str):
-        self._line = line
-        self._match = None
+        self._line: str = line
+        self._match: Optional[Match] = None
+        self._cls: Optional[Type[VgfToken]] = None
 
-    def match(self, pattern: Pattern) -> Match:
-        self._match = pattern.match(self._line)
-        return self._match
+    def match(self, pattern: Pattern, cls: Type[VgfToken]):
+        match = pattern.match(self._line)
+        if self._match is None:
+            if match is not None:
+                self._match = match
+                self._cls = cls
+            return
+        if match is not None:
+            if match.end() > self.end:
+                self._match = match
+                self._cls = cls
 
     @property
     def end(self) -> int:
         return self._match.end()
 
+    @property
+    def line_repr(self) -> str:
+        return repr(self._line)
+
     def group(self, grp: Union[int, str]) -> str:
         return self._match.group(grp)
 
-    def __next__(self):
+    def emit(self) -> VgfToken:
+        if self._match is None:
+            raise TokenizerError(f"No match produced for line: {self.line_repr}")
+        return self._cls(self.group(1))
+
+    def advance(self):
         self._line = self._line[self.end:]
+        self._match = None
+        self._cls = None
 
     def __bool__(self) -> bool:
         return bool(self._line)
@@ -73,19 +111,7 @@ def tokenize_line(line: str, tokens: List[VgfToken]):
         return
     matcher = LongestRegexMatcher(line)
     while matcher:
-        process_next_match(matcher, tokens)
-        next(matcher)
-
-
-def process_next_match(matcher: LongestRegexMatcher, tokens: List[VgfToken]):
-    if matcher.match(RE_WHITESPACE):
-        pass
-    else:
-        for pattern, cls in CONSTANT_TOKEN_RES:
-            if matcher.match(pattern):
-                tokens.append(cls())
-                return
-        for pattern, cls in NON_CONSTANT_RES:
-            if matcher.match(pattern):
-                tokens.append(cls(matcher.group(1)))
-                return
+        for pattern, cls in ALL_RES:
+            matcher.match(pattern, cls)
+        tokens.append(matcher.emit())
+        matcher.advance()
