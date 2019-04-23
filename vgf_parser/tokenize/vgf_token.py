@@ -1,32 +1,35 @@
 from dataclasses import dataclass
-from typing import List, Type
 
 
 @dataclass
 class VgfToken:
     text: str
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return self.text
 
 
+class WhitespaceToken(VgfToken):
+    pass
+
+
 class CommentToken(VgfToken):
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return '#' + self.text
 
 
 class StringToken(VgfToken):
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"'{self.text}'"
 
 
 class BracedTextToken(VgfToken):
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return '{' + self.text + '}'
 
 
 class BracketedTextToken(VgfToken):
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return '<' + self.text + '>'
 
 
@@ -45,12 +48,12 @@ class LowercaseWordToken(VgfToken):
 class ConstantToken(VgfToken):
     match_text = None
 
-    def __init__(self):
+    def __init__(self, text: str):
         if self.match_text is None:
             raise RuntimeError("Initialization of ConstantToken without match_text specified.")
-        super().__init__(self.match_text)
+        super().__init__(text)
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return self.match_text
 
 
@@ -84,16 +87,3 @@ class NonemptySeparatedListToken(ConstantToken):
 
 class OptionalToken(ConstantToken):
     match_text = '?'
-
-
-CONSTANT_TOKENS: List[Type[ConstantToken]] = [
-    RuleDefinitionToken,
-    ProductionSeparationToken,
-    ColonToken,
-    ListToken,
-    NonemptyListToken,
-    SeparatedListToken,
-    NonemptySeparatedListToken,
-    OptionalToken,
-]
-
