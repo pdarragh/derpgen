@@ -25,9 +25,9 @@ RE_STRING = re.compile(r'\"((?:\\.|[^\"\\])*)\"'
                        r'\'((?:\\.|[^\'\\])*)\'')
 RE_BRACED_TEXT = re.compile(r'{([^}]+)}')
 RE_BRACKETED_TEXT = re.compile(r'<([^>]+)>')
-RE_CAPITAL_TEXT = re.compile(r'([A-Z][a-z_]+)')
+RE_CAPITAL_TEXT = re.compile(r'([A-Z]\w+)')
 RE_ALL_CAPITAL_TEXT = re.compile(r'([A-Z_]+)')
-RE_LOWERCASE_TEXT = re.compile(r'([a-z_]+)')
+RE_LOWERCASE_TEXT = re.compile(r'([a-z]\w+)')
 
 ALL_RES: List[Tuple[Pattern, Type[VgfToken]]] = [
     (RE_WHITESPACE, WhitespaceToken),
