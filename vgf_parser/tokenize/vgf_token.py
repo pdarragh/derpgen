@@ -62,11 +62,11 @@ class ConstantToken(VgfToken):
         return self.match_text
 
 
-class RuleDefinitionToken(ConstantToken):
+class AssignToken(ConstantToken):
     match_text = '::='
 
 
-class ProductionSeparationToken(ConstantToken):
+class PipeToken(ConstantToken):
     match_text = '|'
 
 
@@ -74,21 +74,21 @@ class ColonToken(ConstantToken):
     match_text = ':'
 
 
-class ListToken(ConstantToken):
+class StarToken(ConstantToken):
     match_text = '*'
 
 
-class NonemptyListToken(ConstantToken):
+class PlusToken(ConstantToken):
     match_text = '+'
 
 
-class SeparatedListToken(ConstantToken):
+class AmpersandStarToken(ConstantToken):
     match_text = '&*'
 
 
-class NonemptySeparatedListToken(ConstantToken):
+class AmpersandPlusToken(ConstantToken):
     match_text = '&+'
 
 
-class OptionalToken(ConstantToken):
+class QuestionMarkToken(ConstantToken):
     match_text = '?'

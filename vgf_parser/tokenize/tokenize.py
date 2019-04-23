@@ -10,14 +10,14 @@ __all__ = ['tokenize_grammar_file']
 
 RE_WHITESPACE = re.compile(r'(\s+)')
 
-RE_RULE_DEF = re.compile(r'(' + re.escape(RuleDefinitionToken.match_text) + r')')
-RE_PROD_SEP = re.compile(r'(' + re.escape(ProductionSeparationToken.match_text) + r')')
+RE_ASSIGN = re.compile(r'(' + re.escape(AssignToken.match_text) + r')')
+RE_PIPE = re.compile(r'(' + re.escape(PipeToken.match_text) + r')')
 RE_COLON = re.compile(r'(' + re.escape(ColonToken.match_text) + r')')
-RE_LIST = re.compile(r'(' + re.escape(ListToken.match_text) + r')')
-RE_NONEMPTY_LIST = re.compile(r'(' + re.escape(NonemptyListToken.match_text) + r')')
-RE_SEP_LIST = re.compile(r'(' + re.escape(SeparatedListToken.match_text) + r')')
-RE_NONEMPTY_SEP_LIST = re.compile(r'(' + re.escape(NonemptySeparatedListToken.match_text) + r')')
-RE_OPTIONAL = re.compile(r'(' + re.escape(OptionalToken.match_text) + r')')
+RE_STAR = re.compile(r'(' + re.escape(StarToken.match_text) + r')')
+RE_PLUS = re.compile(r'(' + re.escape(PlusToken.match_text) + r')')
+RE_AMPERSAND_STAR = re.compile(r'(' + re.escape(AmpersandStarToken.match_text) + r')')
+RE_AMPERSAND_PLUS = re.compile(r'(' + re.escape(AmpersandPlusToken.match_text) + r')')
+RE_QUESTION_MARK = re.compile(r'(' + re.escape(QuestionMarkToken.match_text) + r')')
 
 RE_COMMENT = re.compile(r'#(.*)$')
 RE_STRING = re.compile(r'\"((?:\\.|[^\"\\])*)\"'
@@ -32,14 +32,14 @@ RE_LOWERCASE_TEXT = re.compile(r'([a-z]\w+)')
 ALL_RES: List[Tuple[Pattern, Type[VgfToken]]] = [
     (RE_WHITESPACE, WhitespaceToken),
 
-    (RE_RULE_DEF, RuleDefinitionToken),
-    (RE_PROD_SEP, ProductionSeparationToken),
+    (RE_ASSIGN, AssignToken),
+    (RE_PIPE, PipeToken),
     (RE_COLON, ColonToken),
-    (RE_LIST, ListToken),
-    (RE_NONEMPTY_LIST, NonemptyListToken),
-    (RE_SEP_LIST, SeparatedListToken),
-    (RE_NONEMPTY_SEP_LIST, NonemptySeparatedListToken),
-    (RE_OPTIONAL, OptionalToken),
+    (RE_STAR, StarToken),
+    (RE_PLUS, PlusToken),
+    (RE_AMPERSAND_STAR, AmpersandStarToken),
+    (RE_AMPERSAND_PLUS, AmpersandPlusToken),
+    (RE_QUESTION_MARK, QuestionMarkToken),
 
     (RE_COMMENT, CommentToken),
     (RE_STRING, StringToken),
