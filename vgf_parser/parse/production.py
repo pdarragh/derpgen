@@ -4,6 +4,9 @@ from dataclasses import dataclass
 from typing import List
 
 
+__all__ = ['Production', 'RuleAliasProduction', 'NamedProduction']
+
+
 @dataclass
 class Production:
     pass
