@@ -5,13 +5,14 @@ from dataclasses import dataclass
 
 __all__ = [
     'ProductionPart',
-    'ActualPart', 'LiteralPart', 'SpecialPart', 'RuleNamePart',
+    'ActualPart', 'LiteralPart', 'SpecialPart', 'RuleNamePart', 'ProductionNamePart',
     'ModifiedPart', 'OptionalPart', 'ListPart', 'NonemptyListPart',
     'SeparatedPart', 'SeparatedListPart', 'NonemptySeparatedListPart',
     'ParameterPart',
 ]
 
 
+@dataclass
 class ProductionPart:
     pass
 
@@ -34,6 +35,11 @@ class SpecialPart(ActualPart):
 @dataclass
 class RuleNamePart(ActualPart):
     token: BracketedTextToken
+
+
+@dataclass
+class ProductionNamePart(ActualPart):
+    token: CapitalWordToken
 
 
 @dataclass
