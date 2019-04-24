@@ -5,6 +5,9 @@ from vgf_parser.tokenize import *
 
 from typing import Dict, List, NamedTuple, Type
 
+
+__all__ = ['parse_grammar_file']
+
 """
 The following is a (simplified) representation of the grammar for VGF files as
 recognized by this parser.
@@ -42,7 +45,6 @@ The special tokens correspond to the following meanings:
 
 
 ParameterParse = NamedTuple('TokenParse', [('part', ProductionPart), ('idx', int)])
-
 
 
 class ParserError(RuntimeError):
