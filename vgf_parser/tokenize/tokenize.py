@@ -8,6 +8,8 @@ from typing import List, Match, Optional, Pattern, Tuple, Type, Union
 __all__ = ['tokenize_grammar_file']
 
 
+# TODO: The regexes use ASCII patterns, but should support all Unicode upper- and lowercase letters appropriately.
+
 RE_WHITESPACE = re.compile(r'(\s+)')
 
 RE_ASSIGN = re.compile(r'(' + re.escape(AssignToken.match_text) + r')')
@@ -25,7 +27,7 @@ RE_STRING = re.compile(r'\"((?:\\.|[^\"\\])*)\"'
                        r'\'((?:\\.|[^\'\\])*)\'')
 RE_BRACED_TEXT = re.compile(r'{([^}]+)}')
 RE_BRACKETED_TEXT = re.compile(r'<([^>]+)>')
-RE_CAPITAL_TEXT = re.compile(r'([A-Z]\w+)')
+RE_CAPITAL_TEXT = re.compile(r'([A-Z]\w*[a-z]\w*)')
 RE_ALL_CAPITAL_TEXT = re.compile(r'([A-Z_]+)')
 RE_LOWERCASE_TEXT = re.compile(r'([a-z]\w+)')
 
