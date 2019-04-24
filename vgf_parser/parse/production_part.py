@@ -75,4 +75,4 @@ class NonemptySeparatedListPart(SeparatedPart):
 @dataclass
 class ParameterPart(ProductionPart):
     name: LowercaseWordToken
-    part: ModifiedPart
+    part: ProductionPart
