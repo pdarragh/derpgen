@@ -74,21 +74,25 @@ class ColonToken(ConstantToken):
     match_text = ':'
 
 
-class StarToken(ConstantToken):
+class ModifierToken(ConstantToken):
+    pass
+
+
+class QuestionMarkToken(ModifierToken):
+    match_text = '?'
+
+
+class StarToken(ModifierToken):
     match_text = '*'
 
 
-class PlusToken(ConstantToken):
+class PlusToken(ModifierToken):
     match_text = '+'
 
 
-class AmpersandStarToken(ConstantToken):
+class AmpersandStarToken(ModifierToken):
     match_text = '&*'
 
 
-class AmpersandPlusToken(ConstantToken):
+class AmpersandPlusToken(ModifierToken):
     match_text = '&+'
-
-
-class QuestionMarkToken(ConstantToken):
-    match_text = '?'
