@@ -5,10 +5,6 @@ from vgf_parser.tokenize import *
 
 from typing import Dict, List, NamedTuple, Type
 
-
-TokenParse = NamedTuple('TokenParse', [('part', ProductionPart), ('idx', int)])
-
-
 """
 The following is a (simplified) representation of the grammar for VGF files as
 recognized by this parser.
@@ -43,6 +39,10 @@ The special tokens correspond to the following meanings:
     STRING
         Any literal string of text.
 """
+
+
+ParameterParse = NamedTuple('TokenParse', [('part', ProductionPart), ('idx', int)])
+
 
 
 class ParserError(RuntimeError):
@@ -184,7 +184,7 @@ def parse_rule(rule_name: str, tokens: List[VgfToken], idx: int, productions: Li
     return idx - start
 
 
-def parse_parameter(tokens: List[VgfToken], idx: int) -> TokenParse:
+def parse_parameter(tokens: List[VgfToken], idx: int) -> ParameterParse:
     token = tokens[idx]
     if isinstance(token, StringToken):
         actual = LiteralPart(token)
@@ -198,7 +198,7 @@ def parse_parameter(tokens: List[VgfToken], idx: int) -> TokenParse:
     idx += 1
     if idx >= len(tokens) or not isinstance(tokens[idx], ModifierToken):
         # There's no modifier.
-        return TokenParse(actual, idx)
+        return ParameterParse(actual, idx)
     # There's a modifier.
     token = tokens[idx]
     if isinstance(token, StarToken):
@@ -220,7 +220,7 @@ def parse_parameter(tokens: List[VgfToken], idx: int) -> TokenParse:
     else:
         raise ParserError(f"Unknown ModifierPart subclass {type(token).__name__} encountered on line {token.line_no} "
                           f"at position {token.char_no}; please contact the developers.")
-    return TokenParse(modified, idx + 1)
+    return ParameterParse(modified, idx + 1)
 
 
 def parse_braced_text(token: VgfToken, actual: ActualPart, cls: Type[SeparatedPart]) -> ModifiedPart:
