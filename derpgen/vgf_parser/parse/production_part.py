@@ -1,5 +1,3 @@
-from vgf_parser.tokenize.vgf_token import *
-
 from dataclasses import dataclass
 
 

@@ -1,8 +1,6 @@
 from .production import *
 from .production_part import *
 
-from vgf_parser.tokenize import *
-
 from typing import Dict, List, NamedTuple, Type
 
 
