@@ -3,6 +3,7 @@ from .tree import Tree
 from dataclasses import dataclass
 from typing import Callable, List, TypeVar
 
+
 __all__ = ['Grammar', 'Nil', 'Eps', 'Tok', 'Rep', 'Alt', 'Seq', 'Red']
 
 
