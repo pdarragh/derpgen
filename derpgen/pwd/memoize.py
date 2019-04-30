@@ -1,3 +1,5 @@
+from .lazy import *
+
 from enum import Enum
 from functools import wraps
 from typing import Any, Callable, Dict, Tuple, TypeVar
@@ -34,9 +36,9 @@ def memoize(*eqs: EqType):
             key: Key = tuple(get_hash(eqs[i], arg) for (i, arg) in enumerate(args))
             val: Val = cache.get(key)
             if val is None:
-                val = func(*args)
+                val = delay(lambda: func(*args))
                 cache[key] = val
-            return val
+            return force(val)
         return wrapper
 
     return decorate
