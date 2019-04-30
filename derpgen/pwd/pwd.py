@@ -49,22 +49,22 @@ parse_null: Callable[[Grammar], List[Tree[Value]]] = fix(list, EqType.Eq)(match(
 
 
 def derive_seq(c: Value, g1: Grammar, g2: Grammar) -> Grammar:
-    dcl_r = delay(lambda: seq(derive(c, g1), g2))
+    dcl_r = delay(lambda: seq(derive(g1, c), g2))
     if is_nullable(g1):
-        return alt(force(dcl_r), seq(eps(parse_null(g1)), derive(c, g2)))
+        return alt(force(dcl_r), seq(eps(parse_null(g1)), derive(g2, c)))
     else:
         return force(dcl_r)
 
 
-derive: Callable[[Value, Grammar], Grammar] = memoize(EqType.Equal, EqType.Eq)(match({
+derive: Callable[[Grammar, Value], Grammar] = memoize(EqType.Equal, EqType.Eq)(match({
     Nil: lambda:            nil(),
     Eps: lambda:            nil(),
     Tok: lambda c, t:       eps([Leaf(c)]) if c == t else nil(),
-    Rep: lambda c, g, g_:   seq(derive(c, g), g_),
-    Alt: lambda c, g1, g2:  alt(derive(c, g1), derive(c, g2)),
+    Rep: lambda c, g, g_:   seq(derive(g, c), g_),
+    Alt: lambda c, g1, g2:  alt(derive(g1, c), derive(g2, c)),
     Seq: derive_seq,
-    Red: lambda c, g, f:    red(derive(c, g), f),
-}, ('c', 'g_')))
+    Red: lambda c, g, f:    red(derive(g, c), f),
+}, ('g_', 'c')))
 
 
 nullp_t: Tree[Value]
@@ -112,7 +112,7 @@ def parse(values: List[Value], g: Grammar) -> List[Tree[Value]]:
         return parse_null(g)
     else:
         c, *cs = values
-        return parse(cs, derive(c, g))
+        return parse(cs, derive(g, c))
 
 
 def parse_compact(values: List[Value], g: Grammar) -> List[Tree[Value]]:
@@ -120,4 +120,4 @@ def parse_compact(values: List[Value], g: Grammar) -> List[Tree[Value]]:
         return parse_null(g)
     else:
         c, *cs = values
-        return parse_compact(cs, make_compact(derive(c, g)))
+        return parse_compact(cs, make_compact(derive(g, c)))
