@@ -1,7 +1,7 @@
 from .eq_type import *
 
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional, Set, Tuple, TypeVar
+from typing import Any, Callable, Dict, Set, Tuple, TypeVar
 
 
 __all__ = ['fix', 'EqType']
@@ -36,9 +36,7 @@ def fix(bottom: Val, *eqs: EqType):
         else:
             return val
 
-    key: Optional[Key] = None
-
-    def f(func: Callable[..., Val], *args: Any) -> Val:
+    def f(func: Callable[..., Val], key: Key, *args: Any) -> Val:
         if is_visited(key):
             if is_cached(key):
                 return cached_val(key)
@@ -54,7 +52,6 @@ def fix(bottom: Val, *eqs: EqType):
 
     def decorate(func: Callable[[Key], Val]):
         def wrapper(*args: Any):
-            nonlocal key
             key = tuple(get_eq_hash(eqs[i], arg) for (i, arg) in enumerate(args))
             if params.running:
                 f(func, *args)
@@ -68,7 +65,7 @@ def fix(bottom: Val, *eqs: EqType):
                 while params.changed:
                     params.changed = False
                     params.visited = set()
-                    val = f(func, *args)
+                    val = f(func, key, *args)
                 params.running = False
                 return val
         return wrapper
