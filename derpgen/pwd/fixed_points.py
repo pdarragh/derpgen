@@ -54,9 +54,9 @@ def fix(bottom: Val, *eqs: EqType):
         def wrapper(*args: Any):
             key = tuple(get_eq_hash(eqs[i], arg) for (i, arg) in enumerate(args))
             if params.running:
-                f(func, *args)
+                return f(func, key, *args)
             elif is_cached(key):
-                cached_val(key)
+                return cached_val(key)
             else:
                 val = bottom
                 params.visited = set()
