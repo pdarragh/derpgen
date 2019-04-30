@@ -1,5 +1,5 @@
 from inspect import signature
-from typing import Any, Callable, Dict, Tuple, Type, TypeVar, Union
+from typing import Callable, Dict, Tuple, Type, TypeVar, Union
 
 
 __all__ = ['match']
