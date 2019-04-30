@@ -17,7 +17,7 @@ def memoize(*eqs: EqType):
     cache: Dict[Key, Val] = {}
 
     @wraps
-    def decorate(func: Callable[[Any, ...], Val]):
+    def decorate(func: Callable[..., Val]):
         def wrapper(*args: Any):  # This decorator does not support keyword arguments.
             key: Key = tuple(get_eq_hash(eqs[i], arg) for (i, arg) in enumerate(args))
             val: Val = cache.get(key)

@@ -38,7 +38,7 @@ def fix(bottom: Val, *eqs: EqType):
 
     key: Optional[Key] = None
 
-    def f(func: Callable[[Any, ...], Val], *args: Any) -> Val:
+    def f(func: Callable[..., Val], *args: Any) -> Val:
         if is_visited(key):
             if is_cached(key):
                 return cached_val(key)
@@ -55,19 +55,19 @@ def fix(bottom: Val, *eqs: EqType):
     def decorate(func: Callable[[Key], Val]):
         def wrapper(*args: Any):
             nonlocal key
-            key: Key = tuple(get_eq_hash(eqs[i], arg) for (i, arg) in enumerate(args))
+            key = tuple(get_eq_hash(eqs[i], arg) for (i, arg) in enumerate(args))
             if params.running:
                 f(func, *args)
             elif is_cached(key):
                 cached_val(key)
             else:
                 val = bottom
-                params.visited = {}
+                params.visited = set()
                 params.changed = True
-                params.visited = True
+                params.running = True
                 while params.changed:
                     params.changed = False
-                    params.visited = {}
+                    params.visited = set()
                     val = f(func, *args)
                 params.running = False
                 return val
