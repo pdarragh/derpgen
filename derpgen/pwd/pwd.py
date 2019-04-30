@@ -1,5 +1,6 @@
 from .fixed_points import *
 from .grammar import *
+from .match import *
 from .memoize import *
 from .tree import *
 
@@ -9,9 +10,20 @@ from typing import List, TypeVar
 Value = TypeVar('Value')
 
 
+_is_empty = match({
+    Nil: True,
+    Eps: False,
+    Tok: False,
+    Rep: False,
+    Alt: lambda g1, g2: is_empty(g1) and is_empty(g2),
+    Seq: lambda g1, g2: is_empty(g1) or is_empty(g2),
+    Red: lambda g: is_empty(g),
+})
+
+
 @fix(False, EqType.Eq)
 def is_empty(g: Grammar) -> bool:
-    pass
+    return _is_empty(g)
 
 
 @fix(True, EqType.Eq)
