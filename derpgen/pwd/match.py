@@ -18,6 +18,9 @@ def get_param_names(func: Callable) -> Tuple[str]:
 
 def match(table: Dict[Type, Union[Val, Callable[..., Val]]], params: Optional[Tuple[str, ...]] = None,
           match_arg_pos: int = -1) -> Callable[[Arg], Val]:
+    if params is None:
+        params = ()
+
     names = {t: get_param_names(table[t]) for t in table}
 
     def do_match(*args: Any):
@@ -36,6 +39,9 @@ def match(table: Dict[Type, Union[Val, Callable[..., Val]]], params: Optional[Tu
 
 def match_pred(table: Dict[Type, Dict[Callable[..., bool], Union[Val, Callable[..., Val]]]],
                params: Optional[Tuple[str, ...]] = None, match_arg_pos: int = -1) -> Callable[[Arg], Val]:
+    if params is None:
+        params = ()
+
     names = {t: {p: get_param_names(v) for p, v in table[t].items()} for t in table}
     pred_names = {t: {p: get_param_names(p) for p in table[t]} for t in table}
 
