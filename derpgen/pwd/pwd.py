@@ -20,9 +20,9 @@ is_empty: Callable[[Grammar], bool] = fix(lambda: False, EqType.Eq)(match({
     Eps: False,
     Tok: False,
     Rep: False,
-    Alt: lambda g1, g2: is_empty(g1) and is_empty(g2),
-    Seq: lambda g1, g2: is_empty(g1) or is_empty(g2),
-    Red: lambda g: is_empty(g),
+    Alt: lambda g1, g2:     is_empty(g1) and is_empty(g2),
+    Seq: lambda g1, g2:     is_empty(g1) or is_empty(g2),
+    Red: lambda g:          is_empty(g),
 }))
 
 
@@ -30,21 +30,21 @@ is_nullable: Callable[[Grammar], bool] = fix(lambda: True, EqType.Eq)(match({
     Nil: False,
     Eps: True,
     Tok: False,
-    Rep: lambda g: is_nullable(g) or is_empty(g),
-    Alt: lambda g1, g2: is_nullable(g1) or is_nullable(g2),
-    Seq: lambda g1, g2: is_nullable(g1) and is_nullable(g2),
-    Red: lambda g: is_nullable(g),
+    Rep: lambda g:          is_nullable(g) or is_empty(g),
+    Alt: lambda g1, g2:     is_nullable(g1) or is_nullable(g2),
+    Seq: lambda g1, g2:     is_nullable(g1) and is_nullable(g2),
+    Red: lambda g:          is_nullable(g),
 }))
 
 
 parse_null: Callable[[Grammar], List[Tree[Value]]] = fix(list, EqType.Eq)(match({
-    Nil: lambda: [],
-    Eps: lambda ts: ts,
-    Tok: lambda: [],
-    Rep: lambda: [Empty()],
-    Alt: lambda g1, g2: parse_null(g1) + parse_null(g2),
-    Seq: lambda g1, g2: [Branch(t1, t2) for t1 in parse_null(g1) for t2 in parse_null(g2)],
-    Red: lambda g, f: [f(t) for t in parse_null(g)],
+    Nil: lambda:            [],
+    Eps: lambda ts:         ts,
+    Tok: lambda:            [],
+    Rep: lambda:            [Empty()],
+    Alt: lambda g1, g2:     parse_null(g1) + parse_null(g2),
+    Seq: lambda g1, g2:     [Branch(t1, t2) for t1 in parse_null(g1) for t2 in parse_null(g2)],
+    Red: lambda g, f:       [f(t) for t in parse_null(g)],
 }))
 
 
@@ -57,13 +57,13 @@ def derive_seq(c: Value, g1: Grammar, g2: Grammar) -> Grammar:
 
 
 derive: Callable[[Value, Grammar], Grammar] = memoize(EqType.Equal, EqType.Eq)(match({
-    Nil: lambda: nil(),
-    Eps: lambda: nil(),
-    Tok: lambda c, t: eps([Leaf(c)]) if c == t else nil(),
-    Rep: lambda c, g, g_: seq(derive(c, g), g_),
-    Alt: lambda c, g1, g2: alt(derive(c, g1), derive(c, g2)),
+    Nil: lambda:            nil(),
+    Eps: lambda:            nil(),
+    Tok: lambda c, t:       eps([Leaf(c)]) if c == t else nil(),
+    Rep: lambda c, g, g_:   seq(derive(c, g), g_),
+    Alt: lambda c, g1, g2:  alt(derive(c, g1), derive(c, g2)),
     Seq: derive_seq,
-    Red: lambda c, g, f: red(derive(c, g), f),
+    Red: lambda c, g, f:    red(derive(c, g), f),
 }, ('c', 'g_')))
 
 
