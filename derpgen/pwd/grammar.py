@@ -7,7 +7,7 @@ from typing import Callable, List, TypeVar
 __all__ = ['Grammar', 'Nil', 'Eps', 'Tok', 'Rep', 'Alt', 'Seq', 'Red']
 
 
-V = TypeVar('V')
+Value = TypeVar('Value')
 
 
 @dataclass
@@ -22,32 +22,32 @@ class Nil(Grammar):
 
 @dataclass
 class Eps(Grammar):
-    trees: List[Tree[V]]
+    ts: List[Tree[Value]]
 
 
 @dataclass
 class Tok(Grammar):
-    value: V
+    t: Value
 
 
 @dataclass
 class Rep(Grammar):
-    grammar: Grammar
+    g: Grammar
 
 
 @dataclass
 class Alt(Grammar):
-    this: Grammar
-    that: Grammar
+    g1: Grammar
+    g2: Grammar
 
 
 @dataclass
 class Seq(Grammar):
-    left: Grammar
-    right: Grammar
+    g1: Grammar
+    g2: Grammar
 
 
 @dataclass
 class Red(Grammar):
-    grammar: Grammar
-    function: Callable[[Tree[V]], Tree[V]]
+    g: Grammar
+    f: Callable[[Tree[Value]], Tree[Value]]
