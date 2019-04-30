@@ -50,7 +50,7 @@ parse_null: Callable[[Grammar], List[Tree[Value]]] = fix(list, EqType.Eq)(match(
 def derive_seq(c: Value, g1: Grammar, g2: Grammar) -> Grammar:
     dcl_r = delay(lambda: Seq(derive(c, g1), g2))
     if is_nullable(g1):
-        return Alt(force(dcl_r),  Seq(Eps(parse_null(g1)), derive(c, g2)))
+        return Alt(force(dcl_r), Seq(Eps(parse_null(g1)), derive(c, g2)))
     else:
         return force(dcl_r)
 
@@ -80,23 +80,29 @@ def nullp(g: Grammar) -> bool:
 
 
 make_compact: Callable[[Grammar], Grammar] = memoize(EqType.Eq)(match_pred({
-    Nil: {lambda: True:                                 lambda g_: g_},
-    Eps: {lambda: True:                                 lambda g_: g_},
-    Tok: {lambda g_: is_empty(g_):                      lambda: Nil(),
-          lambda: True:                                 lambda g_: g_},
-    Rep: {lambda g: is_empty(g):                        lambda: Eps([Empty()]),
-          lambda: True:                                 lambda g: Rep(make_compact(g))},
-    Alt: {lambda g1: is_empty(g1):                      lambda g2: make_compact(g2),
-          lambda g2: is_empty(g2):                      lambda g1: make_compact(g1),
-          lambda: True:                                 lambda g1, g2: Alt(make_compact(g1), make_compact(g2))},
-    Seq: {lambda g1, g2: is_empty(g1) or is_empty(g2):  lambda: Nil(),
-          lambda g1: nullp(g1):                         lambda g2: Red(make_compact(g2), lambda w2: Branch(nullp_t, w2)),
-          lambda g2: nullp(g2):                         lambda g1: Red(make_compact(g1), lambda w1: Branch(w1, nullp_t)),
-          lambda: True:                                 lambda g1, g2: Seq(make_compact(g1), make_compact(g2))},
-    Red: {lambda g: g.__class__ is Eps:                 lambda g, f: Eps([f(t) for t in g.ts]),
-          lambda g: g.__class__ is Seq and nullp(g.g1): lambda f, g: Red(make_compact(g.g2), lambda t: f(Branch(nullp_t, t))),
-          lambda g: g.__class__ is Red:                 lambda g, f: Red(make_compact(g.g), lambda t: g.f(t)),
-          lambda: True:                                 lambda g, f: Red(make_compact(g), f)},
+    Nil: {lambda:           True:                               lambda g_:      g_},
+    Eps: {lambda:           True:                               lambda g_:      g_},
+    Tok: {lambda g_:        is_empty(g_):                       lambda:         Nil(),
+          lambda:           True:                               lambda g_:      g_},
+    Rep: {lambda g:         is_empty(g):                        lambda:         Eps([Empty()]),
+          lambda:           True:                               lambda g:       Rep(make_compact(g))},
+    Alt: {lambda g1:        is_empty(g1):                       lambda g2:      make_compact(g2),
+          lambda g2:        is_empty(g2):                       lambda g1:      make_compact(g1),
+          lambda:           True:                               lambda g1, g2:  Alt(make_compact(g1),
+                                                                                    make_compact(g2))},
+    Seq: {lambda g1, g2:    is_empty(g1) or is_empty(g2):       lambda:         Nil(),
+          lambda g1:        nullp(g1):                          lambda g2:      Red(make_compact(g2),
+                                                                                    lambda w2: Branch(nullp_t, w2)),
+          lambda g2:        nullp(g2):                          lambda g1:      Red(make_compact(g1),
+                                                                                    lambda w1: Branch(w1, nullp_t)),
+          lambda:           True:                               lambda g1, g2:  Seq(make_compact(g1),
+                                                                                    make_compact(g2))},
+    Red: {lambda g:         g.__class__ is Eps:                 lambda g, f:    Eps([f(t) for t in g.ts]),
+          lambda g:         g.__class__ is Seq and nullp(g.g1): lambda f, g:    Red(make_compact(g.g2),
+                                                                                    lambda t: f(Branch(nullp_t, t))),
+          lambda g:         g.__class__ is Red:                 lambda g, f:    Red(make_compact(g.g),
+                                                                                    lambda t: g.f(t)),
+          lambda:           True:                               lambda g, f:    Red(make_compact(g), f)},
 }, ('g_',)))
 
 
