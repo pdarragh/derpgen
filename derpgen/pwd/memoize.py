@@ -28,7 +28,7 @@ def get_hash(eq_type: EqType, o: Any) -> int:
 
 
 def memoize(*eqs: EqType):
-    cache: Dict[Args, Val] = {}
+    cache: Dict[Key, Val] = {}
 
     @wraps
     def decorate(func: Callable[[Any, ...], Val]):
