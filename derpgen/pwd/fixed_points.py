@@ -19,7 +19,7 @@ class Parameters:
     running: bool
 
 
-def fix(bottom: Val, *eqs: EqType):
+def fix(mk_bottom: Callable[[], Val], *eqs: EqType):
     cache: Dict[Key, Val] = {}
     params = Parameters(set(), False, False)
 
@@ -32,7 +32,7 @@ def fix(bottom: Val, *eqs: EqType):
     def cached_val(k: Key) -> Val:
         val = cache.get(k)
         if val is None:
-            return bottom
+            return mk_bottom()
         else:
             return val
 
@@ -41,7 +41,7 @@ def fix(bottom: Val, *eqs: EqType):
             if is_cached(key):
                 return cached_val(key)
             else:
-                return bottom
+                return mk_bottom()
         else:
             params.visited.add(key)
             val = func(*args)
@@ -58,7 +58,7 @@ def fix(bottom: Val, *eqs: EqType):
             elif is_cached(key):
                 return cached_val(key)
             else:
-                val = bottom
+                val = mk_bottom()
                 params.visited = set()
                 params.changed = True
                 params.running = True
