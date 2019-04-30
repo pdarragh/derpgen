@@ -109,10 +109,14 @@ make_compact: Callable[[Grammar], Grammar] = memoize(EqType.Eq)(match_pred({
 def parse(values: List[Value], g: Grammar) -> List[Tree[Value]]:
     if not values:
         return parse_null(g)
-    return parse(values[1:], derive(values[0], g))
+    else:
+        c, *cs = values
+        return parse(cs, derive(c, g))
 
 
 def parse_compact(values: List[Value], g: Grammar) -> List[Tree[Value]]:
     if not values:
         return parse_null(g)
-    return parse_compact(values[1:], make_compact(derive(values[0], g)))
+    else:
+        c, *cs = values
+        return parse_compact(cs, make_compact(derive(c, g)))
