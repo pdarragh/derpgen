@@ -16,13 +16,13 @@ def get_param_names(func: Callable) -> Tuple[str]:
 
 
 def match(table: Dict[Type, Union[Val, Callable[..., Val]]], params: Optional[Tuple[str, ...]] = None,
-          pos: int = 0) -> Callable[..., Val]:
+          pos: int = 0) -> Callable:
     if params is None:
         params = ()
 
     names = {t: get_param_names(table[t]) for t in table}
 
-    def do_match(*args: Any):
+    def do_match(*args: Any) -> Val:
         x = args[pos]
         cls = x.__class__
         v = table[cls]
