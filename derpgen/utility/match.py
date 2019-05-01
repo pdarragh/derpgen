@@ -5,7 +5,6 @@ from typing import Any, Callable, Dict, Optional, Tuple, Type, TypeVar, Union
 __all__ = ['match', 'match_pred']
 
 
-Arg = TypeVar('Arg')
 Val = TypeVar('Val')
 
 
@@ -17,7 +16,7 @@ def get_param_names(func: Callable) -> Tuple[str]:
 
 
 def match(table: Dict[Type, Union[Val, Callable[..., Val]]], params: Optional[Tuple[str, ...]] = None,
-          pos: int = 0) -> Callable[[Arg], Val]:
+          pos: int = 0) -> Callable[..., Val]:
     if params is None:
         params = ()
 
@@ -38,7 +37,7 @@ def match(table: Dict[Type, Union[Val, Callable[..., Val]]], params: Optional[Tu
 
 
 def match_pred(table: Dict[Type, Dict[Callable[..., bool], Union[Val, Callable[..., Val]]]],
-               params: Optional[Tuple[str, ...]] = None, pos: int = 0) -> Callable[[Arg], Val]:
+               params: Optional[Tuple[str, ...]] = None, pos: int = 0) -> Callable[..., Val]:
     if params is None:
         params = ()
 
