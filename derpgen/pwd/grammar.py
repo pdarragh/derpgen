@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Callable, Generic, List, TypeVar
 
 
-__all__ = ['Grammar',
+__all__ = ['Grammar', 'unit',
            'Nil', 'Eps', 'Tok', 'Rep', 'Alt', 'Seq', 'Red',
            'nil', 'eps', 'tok', 'rep', 'alt', 'seq', 'red']
 
