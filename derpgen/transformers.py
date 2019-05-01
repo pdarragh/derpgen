@@ -1,22 +1,9 @@
 from .pwd import *
 
-from derpgen.utility.match import *
-
-from typing import Callable, TypeVar
+from typing import TypeVar
 
 
 Value = TypeVar('Value')
-
-#
-# def rep_red_func_branch(t: Branch[Value]) -> Tree[Value]:
-#     ...
-#
-#
-# rep_red_func: Callable[[Tree[Value]], Tree[Value]] = match({
-#     Empty:  lambda t: t,
-#     Leaf:   lambda t: t,
-#     Branch: rep_red_func_branch,
-# }, ('t',))
 
 
 def optional_t(g: Grammar) -> Grammar:
@@ -85,6 +72,3 @@ def nonempty_separated_list_t(sep_g: Grammar, g: Grammar) -> Grammar:
         s   w
     """
     return seq(g, rep(seq(sep_g, g)))
-
-
-
