@@ -61,7 +61,7 @@ class NonemptyListPart(ModifiedPart):
 
 @dataclass
 class SeparatedPart(ModifiedPart):
-    separator: BracedTextToken
+    separator: ActualPart
 
 
 class SeparatedListPart(SeparatedPart):

@@ -230,4 +230,4 @@ def parse_braced_text(token: VgfToken, actual: ActualPart, cls: Type[SeparatedPa
                           f"expected braced text to denote a separator.")
     # The following arguments are not properly detected by PyCharm, so we suppress inspection.
     # noinspection PyArgumentList
-    return cls(actual, token)
+    return cls(actual, ActualPart(token))
