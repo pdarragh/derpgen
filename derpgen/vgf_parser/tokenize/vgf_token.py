@@ -1,6 +1,12 @@
 from dataclasses import dataclass
 
 
+__all__ = ['VgfToken', 'WhitespaceToken', 'CommentToken', 'StringToken', 'BracedTextToken', 'BracketedTextToken',
+           'CapitalWordToken', 'AllCapitalWordToken', 'LowercaseWordToken', 'ConstantToken', 'AssignToken', 'PipeToken',
+           'ColonToken', 'ModifierToken', 'QuestionMarkToken', 'StarToken', 'PlusToken', 'AmpersandStarToken',
+           'AmpersandPlusToken']
+
+
 @dataclass
 class VgfToken:
     text: str
