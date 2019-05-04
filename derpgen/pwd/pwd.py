@@ -16,36 +16,36 @@ Value = TypeVar('Value')
 
 
 is_empty: Callable[[Grammar], bool] = fix(lambda: False, EqType.Eq)(match({
-    Nil: True,
-    Eps: False,
-    Tok: False,
-    Rep: False,
-    Alt: lambda g1, g2:     is_empty(g1) and is_empty(g2),
-    Seq: lambda g1, g2:     is_empty(g1) or is_empty(g2),
-    Red: lambda g:          is_empty(g),
-}))
+    Nil: lambda _:          True,
+    Eps: lambda _, ts:      False,
+    Tok: lambda _, t:       False,
+    Rep: lambda _, g:       False,
+    Alt: lambda _, g1, g2:  is_empty(g1) and is_empty(g2),
+    Seq: lambda _, g1, g2:  is_empty(g1) or is_empty(g2),
+    Red: lambda _, g, f:    is_empty(g),
+}, Grammar))
 
 
 is_nullable: Callable[[Grammar], bool] = fix(lambda: True, EqType.Eq)(match({
-    Nil: False,
-    Eps: True,
-    Tok: False,
-    Rep: lambda g:          is_nullable(g) or is_empty(g),
-    Alt: lambda g1, g2:     is_nullable(g1) or is_nullable(g2),
-    Seq: lambda g1, g2:     is_nullable(g1) and is_nullable(g2),
-    Red: lambda g:          is_nullable(g),
-}))
+    Nil: lambda _:          False,
+    Eps: lambda _, ts:      True,
+    Tok: lambda _, t:       False,
+    Rep: lambda _, g:       is_nullable(g) or is_empty(g),
+    Alt: lambda _, g1, g2:  is_nullable(g1) or is_nullable(g2),
+    Seq: lambda _, g1, g2:  is_nullable(g1) and is_nullable(g2),
+    Red: lambda _, g, f:    is_nullable(g),
+}, Grammar))
 
 
 parse_null: Callable[[Grammar], List[Tree[Value]]] = fix(list, EqType.Eq)(match({
-    Nil: lambda:            [],
-    Eps: lambda ts:         ts,
-    Tok: lambda:            [],
-    Rep: lambda:            [Empty()],
-    Alt: lambda g1, g2:     parse_null(g1) + parse_null(g2),
-    Seq: lambda g1, g2:     [Branch(t1, t2) for t1 in parse_null(g1) for t2 in parse_null(g2)],
-    Red: lambda g, f:       [f(t) for t in parse_null(g)],
-}))
+    Nil: lambda _:          [],
+    Eps: lambda _, ts:      ts,
+    Tok: lambda _, t:       [],
+    Rep: lambda _, g:       [Empty()],
+    Alt: lambda _, g1, g2:  parse_null(g1) + parse_null(g2),
+    Seq: lambda _, g1, g2:  [Branch(t1, t2) for t1 in parse_null(g1) for t2 in parse_null(g2)],
+    Red: lambda _, g, f:    [f(t) for t in parse_null(g)],
+}, Grammar))
 
 
 def derive_seq(c: Value, g1: Grammar, g2: Grammar) -> Grammar:
@@ -57,14 +57,14 @@ def derive_seq(c: Value, g1: Grammar, g2: Grammar) -> Grammar:
 
 
 derive: Callable[[Grammar, Value], Grammar] = memoize(EqType.Equal, EqType.Eq)(match({
-    Nil: lambda:            nil(),
-    Eps: lambda:            nil(),
-    Tok: lambda c, t:       eps([Leaf(c)]) if c == t else nil(),
-    Rep: lambda c, g, g_:   seq(derive(g, c), g_),
-    Alt: lambda c, g1, g2:  alt(derive(g1, c), derive(g2, c)),
-    Seq: derive_seq,
-    Red: lambda c, g, f:    red(derive(g, c), f),
-}, ('g_', 'c')))
+    Nil: lambda _, c:          nil(),
+    Eps: lambda _, c, ts:      nil(),
+    Tok: lambda _, c, t:       eps([Leaf(c)]) if c == t else nil(),
+    Rep: lambda g_, c, g:      seq(derive(g, c), g_),
+    Alt: lambda _, c, g1, g2:  alt(derive(g1, c), derive(g2, c)),
+    Seq: lambda _, c, g1, g2:  derive_seq(c, g1, g2),
+    Red: lambda _, c, g, f:    red(derive(g, c), f),
+}, Grammar, ('g_', 'c')))
 
 
 nullp_t: Tree[Value]

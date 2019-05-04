@@ -17,7 +17,7 @@ from typing import Callable, Dict, List, NamedTuple, Optional, TypeVar
 
 Value = TypeVar('Value')
 RuleDict = Dict[str, Grammar]
-PartTuple = NamedTuple('PartTuple', [('g', Grammar), ('name', str)])
+PartTuple = NamedTuple('PartTuple', [('g', Grammar), ('name', Optional[str])])
 
 
 @dataclass
@@ -61,20 +61,31 @@ def process_named_production(production: NamedProduction, rule_dict: RuleDict) -
 process_production: Callable[[Production, RuleDict], Grammar] = match({
     RuleAliasProduction:    process_rule_alias_production,
     NamedProduction:        process_named_production,
-}, ('production', 'rule_dict'))
+}, Production, ('production', 'rule_dict'), destructure=False)
 
 
 process_production_part: Callable[[ProductionPart, RuleDict], PartTuple] = match({
-    LiteralPart:                lambda part:            PartTuple(tok(part.token.text), None),
-    SpecialPart:                lambda part:            PartTuple(tok(part.token.text), None),
+    LiteralPart:                lambda part, rule_dict: PartTuple(tok(part.token.text), None),
+    SpecialPart:                lambda part, rule_dict: PartTuple(tok(part.token.text), None),
     RuleNamePart:               lambda part, rule_dict: PartTuple(RuleLit(part.token.text, rule_dict), None),
-    ActualPart:                 lambda part:            PartTuple(tok(part.token.text), None),
+    ActualPart:                 lambda part, rule_dict: PartTuple(tok(part.token.text), None),
 
-    OptionalPart:               lambda part, rule_dict: PartTuple(opt(process_production_part(part.actual, rule_dict)), None),
-    ListPart:                   lambda part, rule_dict: PartTuple(lst(process_production_part(part.actual, rule_dict)), None),
-    NonemptyListPart:           lambda part, rule_dict: PartTuple(min_lst(process_production_part(part.actual, rule_dict)), None),
-    SeparatedListPart:          lambda part, rule_dict: PartTuple(sep_lst(process_production_part(part.separator, rule_dict), process_production_part(part.actual, rule_dict)), None),
-    NonemptySeparatedListPart:  lambda part, rule_dict: PartTuple(min_sep_lst(process_production_part(part.separator, rule_dict), process_production_part(part.actual, rule_dict)), None),
+    OptionalPart:               lambda part, rule_dict: PartTuple(opt(process_production_part(part.actual,
+                                                                                              rule_dict).g), None),
+    ListPart:                   lambda part, rule_dict: PartTuple(lst(process_production_part(part.actual,
+                                                                                              rule_dict).g), None),
+    NonemptyListPart:           lambda part, rule_dict: PartTuple(min_lst(process_production_part(part.actual,
+                                                                                                  rule_dict).g), None),
+    SeparatedListPart:          lambda part, rule_dict: PartTuple(sep_lst(process_production_part(part.separator,
+                                                                                                  rule_dict).g,
+                                                                          process_production_part(part.actual,
+                                                                                                  rule_dict).g), None),
+    NonemptySeparatedListPart:  lambda part, rule_dict: PartTuple(min_sep_lst(process_production_part(part.separator,
+                                                                                                      rule_dict).g,
+                                                                              process_production_part(part.actual,
+                                                                                                      rule_dict).g),
+                                                                  None),
 
-    ParameterPart:              lambda part, rule_dict: PartTuple(process_production_part(part.part, rule_dict), part.name),
-}, ('part', 'rule_dict'))
+    ParameterPart:              lambda part, rule_dict: PartTuple(process_production_part(part.part, rule_dict).g,
+                                                                  part.name),
+}, ProductionPart, ('part', 'rule_dict'), destructure=False, omit={ProductionNamePart, ModifiedPart, SeparatedPart})
