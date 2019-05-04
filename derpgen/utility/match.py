@@ -53,8 +53,8 @@ def get_param_names(func: Callable) -> Tuple[str]:
 
 
 def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, params: Optional[Tuple[str, ...]] = None,
-          pos: int = 0, exhaustive: bool = True, omit: Optional[Set[Type]] = None, same_module_only: bool = True,
-          destructure: bool = True) -> Callable[..., Val]:
+          pos: int = 0, exhaustive: bool = True, omit: Optional[Set[Type]] = None, omit_recursive: bool = False,
+          same_module_only: bool = True, destructure: bool = True) -> Callable[..., Val]:
     """
     Returns a function which will perform "pattern matching" on an input to perform dispatch based on that input's type.
     At module-load time, top-level calls to `match` will also perform some checks on the pattern table to ensure some
@@ -79,6 +79,7 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
     :param exhaustive: whether to guarantee exhaustiveness at module-load time; defaults to True
     :param omit: a set of classes to omit during exhaustiveness checking, which is useful if you have special classes
                  which are abstract-like that you don't ever want to match over; defaults to None
+    :param omit_recursive: when omitting classes, also omit any subclasses of omitted classes; defaults to False
     :param same_module_only: only perform exhaustiveness checking over subclasses of `base` defined in the same module
                              in which `base` was defined; defaults to True
     :param destructure: whether to require match clause functions to provide arguments for all the parts of each
@@ -95,8 +96,16 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
 
     funcs: Dict[Type, Tuple[Callable[..., Val], Dict[str, Callable[[List[Any], Any], Any]]]] = {}
     subclasses: Dict[Type, bool] = {}  # The boolean is used for determining exhaustiveness.
+
+    def get_all_subclasses(cls: Type):
+        for subclass in cls.__subclasses__():
+            if subclass not in omit:
+                subclasses[subclass] = False
+            if not omit_recursive:
+                get_all_subclasses(subclass)
+
     if base is not None:
-        subclasses = {cls: False for cls in base.__subclasses__() if cls not in omit}
+        get_all_subclasses(base)
 
     # Pre-process the pattern table to perform checks and prepare dispatch.
     for t, f in table.items():
