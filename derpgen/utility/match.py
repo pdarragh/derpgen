@@ -164,6 +164,7 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
     return do_match
 
 
+# TODO: Update `match_pred` to work like `match` does now.
 def match_pred(table: Dict[Type, Dict[Callable[..., bool], Union[Val, Callable[..., Val]]]],
                params: Optional[Tuple[str, ...]] = None, pos: int = 0) -> Callable[..., Val]:
     if params is None:
