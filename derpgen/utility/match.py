@@ -114,8 +114,8 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
         # Analyze the signature of the given match clause function.
         sig_params = signature(f).parameters.keys()
         if len(sig_params) != len(func_params):
-            extra_params = [param for param in func_params if param not in sig_params]
-            missing_params = [param for param in sig_params if param not in func_params]
+            extra_params = [param for param in sig_params if param not in func_params]
+            missing_params = [param for param in func_params if param not in sig_params]
             raise ClauseSignatureError(extra_params, missing_params)
         # Build getter-function for each parameter.
         getters: Dict[str, Callable[[List[Any], Any], Any]] = {}
