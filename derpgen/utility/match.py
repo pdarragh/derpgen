@@ -53,8 +53,8 @@ def get_param_names(func: Callable) -> Tuple[str]:
 
 
 def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, params: Optional[Tuple[str, ...]] = None,
-          pos: int = 0, exhaustive: bool = True, omit: Optional[Set[Type]] = None, same_module_only: bool = True
-          ) -> Callable[..., Val]:
+          pos: int = 0, exhaustive: bool = True, omit: Optional[Set[Type]] = None, same_module_only: bool = True,
+          destructure: bool = True) -> Callable[..., Val]:
     """
     Returns a function which will perform "pattern matching" on an input to perform dispatch based on that input's type.
     At module-load time, top-level calls to `match` will also perform some checks on the pattern table to ensure some
@@ -81,6 +81,9 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
                  which are abstract-like that you don't ever want to match over; defaults to None
     :param same_module_only: only perform exhaustiveness checking over subclasses of `base` defined in the same module
                              in which `base` was defined; defaults to True
+    :param destructure: whether to require match clause functions to provide arguments for all the parts of each
+                        matching class; defaults to True, meaning match clause functions must provide sufficient
+                        arguments for full destructuring of matched instances
     :return: a function which will perform the desired pattern matching
     """
     if params is None:
@@ -105,8 +108,11 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
         # Analyze the annotations of the given class. These, together with the `params`, will tell us how many arguments
         # the match clause function should have.
         func_params = list(params)
-        annotations: Dict[str, Any] = t.__dict__.get('__annotations__', {})
-        func_params.extend(annotations.keys())
+        if destructure:
+            annotations: Dict[str, Any] = t.__dict__.get('__annotations__', {})
+            func_params.extend(annotations.keys())
+        else:
+            annotations = {}
         # Ensure uniqueness of names between function parameters and match clause lambda parameters.
         duped_names = {name for name in params if name in annotations}
         if duped_names:
