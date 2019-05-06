@@ -52,6 +52,28 @@ def get_param_names(func: Callable) -> Tuple[str]:
     return tuple(sig.parameters.keys())
 
 
+class ParamGetFunc(Callable[[Tuple[Any], Any], Any]):
+    def __init__(self, pos: int):
+        self.pos = pos
+
+    def __call__(self, ps, x):
+        return ps[self.pos]
+
+    def __repr__(self) -> str:
+        return f"<function match.ParamGetFunc<{self.pos}> at {id(self)}>"
+
+
+class AttrGetFunc(Callable[[Tuple[Any], Any], Any]):
+    def __init__(self, attr: str):
+        self.attr = attr
+
+    def __call__(self, ps, x):
+        return getattr(x, self.attr)
+
+    def __repr__(self) -> str:
+        return f"<function match.AttrGetFunc<{self.attr}> at {id(self)}>"
+
+
 def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, params: Optional[Tuple[str, ...]] = None,
           pos: int = 0, exhaustive: bool = True, omit: Optional[Set[Type]] = None, omit_recursive: bool = False,
           same_module_only: bool = True, destructure: bool = True) -> Callable[..., Val]:
@@ -136,9 +158,9 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
         getters: Dict[str, Callable[[List[Any], Any], Any]] = {}
         for i, name in enumerate(sig_params):
             if i < len(params):
-                getters[name] = lambda ps, x: ps[i]
+                getters[name] = ParamGetFunc(i)
             else:
-                getters[name] = lambda ps, x: getattr(x, name)
+                getters[name] = AttrGetFunc(name)
         funcs[t] = (f, getters)
 
     # Check for exhaustive patterns if necessary.
