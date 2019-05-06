@@ -49,11 +49,11 @@ parse_null: Callable[[Grammar], List[Tree[Value]]] = fix(list, EqType.Eq)(match(
 
 
 def derive_seq(c: Value, g1: Grammar, g2: Grammar) -> Grammar:
-    dcl_r = delay(lambda: seq(derive(g1, c), g2))
+    dcl_r = seq(derive(g1, c), g2)
     if is_nullable(g1):
-        return alt(force(dcl_r), seq(eps(parse_null(g1)), derive(g2, c)))
+        return alt(dcl_r, seq(eps(parse_null(g1)), derive(g2, c)))
     else:
-        return force(dcl_r)
+        return dcl_r
 
 
 derive: Callable[[Grammar, Value], Grammar] = memoize(EqType.Equal, EqType.Eq)(match({
