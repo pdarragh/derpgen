@@ -10,7 +10,7 @@ Val = TypeVar('Val')
 
 class MatchError(Exception):
     def __init__(self, mdfn: str, mdln: int, msg: str):
-        super().__init__(f"Error in match defined at {mdfn}:{mdln}:\n{msg}")
+        super().__init__(f"Error in match defined in file {mdfn}, line {mdln}:\n{msg}")
 
 
 class NoMatchError(MatchError):
