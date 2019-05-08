@@ -3,12 +3,14 @@ from .tree import Tree
 from derpgen.utility import has_class
 
 from dataclasses import dataclass
-from typing import Callable, Generic, List, TypeVar
+from typing import Callable, Dict, Generic, List, TypeVar
 
 
-__all__ = ['Grammar', 'unit',
-           'Nil', 'Eps', 'Tok', 'Rep', 'Alt', 'Seq', 'Red',
-           'nil', 'eps', 'tok', 'rep', 'alt', 'seq', 'red']
+__all__ = [
+    'Grammar', 'unit', 'GrammarDict',
+    'Nil', 'Eps', 'Tok', 'Rep', 'Alt', 'Seq', 'Red', 'Ref',
+    'nil', 'eps', 'tok', 'rep', 'alt', 'seq', 'red', 'ref',
+]
 
 
 Value = TypeVar('Value')
@@ -18,6 +20,9 @@ RedFunc = Callable[[Tree[Value]], Tree[Value]]
 @dataclass
 class Grammar(Generic[Value]):
     pass
+
+
+GrammarDict = Dict[str, Grammar]
 
 
 @dataclass
@@ -56,6 +61,12 @@ class Seq(Grammar[Value]):
 class Red(Grammar[Value]):
     g: Grammar
     f: RedFunc
+
+
+@dataclass
+class Ref(Grammar[Value]):
+    n: str
+    rd: GrammarDict
 
 
 ########
@@ -111,3 +122,7 @@ def seq(*gs: Grammar) -> Grammar:
 
 def red(g: Grammar, f: RedFunc) -> Grammar:
     return Red(unit(g), f)
+
+
+def ref(n: str, rd: GrammarDict) -> Grammar:
+    return Ref(n, rd)

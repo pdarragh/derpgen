@@ -1,32 +1,22 @@
 from .pwd import *
+from .transformers import (
+    optional_t                  as opt,
+    list_t                      as lst,
+    nonempty_list_t             as min_lst,
+    separated_list_t            as sep_lst,
+    nonempty_separated_list_t   as min_sep_lst
+)
 from .vgf_parser import *
 
-from .transformers import (
-    optional_t as opt,
-    list_t as lst,
-    nonempty_list_t as min_lst,
-    separated_list_t as sep_lst,
-    nonempty_separated_list_t as min_sep_lst
-)
-
 from derpgen.utility.match import *
-
-from dataclasses import dataclass
-from typing import Callable, Dict, List, NamedTuple, Optional, TypeVar
+from typing import Callable, List, NamedTuple, Optional, TypeVar
 
 
 Value = TypeVar('Value')
-RuleDict = Dict[str, Grammar]
 PartTuple = NamedTuple('PartTuple', [('g', Grammar), ('name', Optional[str])])
 
 
-@dataclass
-class RuleLit(Grammar[Value]):
-    name: str
-    rule_dict: RuleDict
-
-
-def generate_grammar_from_file(vgf_file: str) -> RuleDict:
+def generate_grammar_from_file(vgf_file: str) -> GrammarDict:
     parsed_rules = parse_grammar_file(vgf_file)
     rule_dict = {}
     for rule_name, productions in parsed_rules.items():
@@ -35,7 +25,7 @@ def generate_grammar_from_file(vgf_file: str) -> RuleDict:
     return rule_dict
 
 
-def process_rule(productions: List[Production], rule_dict: RuleDict) -> Grammar:
+def process_rule(productions: List[Production], rule_dict: GrammarDict) -> Grammar:
     gs = []
     for production in productions:
         g = process_production(production, rule_dict)
@@ -43,11 +33,11 @@ def process_rule(productions: List[Production], rule_dict: RuleDict) -> Grammar:
     return alt(*gs)
 
 
-def process_rule_alias_production(production: RuleAliasProduction, rule_dict: RuleDict) -> Grammar:
-    return RuleLit(production.rule.token.text, rule_dict)
+def process_rule_alias_production(production: RuleAliasProduction, rule_dict: GrammarDict) -> Grammar:
+    return ref(production.rule.token.text, rule_dict)
 
 
-def process_named_production(production: NamedProduction, rule_dict: RuleDict) -> Grammar:
+def process_named_production(production: NamedProduction, rule_dict: GrammarDict) -> Grammar:
     parameters: List[Optional[str]] = []
     gs = []
     for part in production.parts:
@@ -58,16 +48,16 @@ def process_named_production(production: NamedProduction, rule_dict: RuleDict) -
     return g
 
 
-process_production: Callable[[Production, RuleDict], Grammar] = match({
+process_production: Callable[[Production, GrammarDict], Grammar] = match({
     RuleAliasProduction:    process_rule_alias_production,
     NamedProduction:        process_named_production,
 }, Production, ('production', 'rule_dict'), destructure=False)
 
 
-process_production_part: Callable[[ProductionPart, RuleDict], PartTuple] = match({
+process_production_part: Callable[[ProductionPart, GrammarDict], PartTuple] = match({
     LiteralPart:                lambda part, rule_dict: PartTuple(tok(part.token.text), None),
     SpecialPart:                lambda part, rule_dict: PartTuple(tok(part.token.text), None),
-    RuleNamePart:               lambda part, rule_dict: PartTuple(RuleLit(part.token.text, rule_dict), None),
+    RuleNamePart:               lambda part, rule_dict: PartTuple(ref(part.token.text, rule_dict), None),
     ActualPart:                 lambda part, rule_dict: PartTuple(tok(part.token.text), None),
 
     OptionalPart:               lambda part, rule_dict: PartTuple(opt(process_production_part(part.actual,

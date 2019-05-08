@@ -2,7 +2,6 @@ from .grammar import *
 from .tree import *
 
 from derpgen.utility.fixed_points import *
-from derpgen.utility.lazy import *
 from derpgen.utility.match import *
 from derpgen.utility.memoize import *
 
@@ -23,6 +22,7 @@ is_empty: Callable[[Grammar], bool] = fix(lambda: False, EqType.Eq)(match({
     Alt: lambda _, g1, g2:  is_empty(g1) and is_empty(g2),
     Seq: lambda _, g1, g2:  is_empty(g1) or is_empty(g2),
     Red: lambda _, g, f:    is_empty(g),
+    Ref: lambda _, n, rd:   is_empty(rd[n]),
 }, Grammar))
 
 
@@ -34,6 +34,7 @@ is_nullable: Callable[[Grammar], bool] = fix(lambda: True, EqType.Eq)(match({
     Alt: lambda _, g1, g2:  is_nullable(g1) or is_nullable(g2),
     Seq: lambda _, g1, g2:  is_nullable(g1) and is_nullable(g2),
     Red: lambda _, g, f:    is_nullable(g),
+    Ref: lambda _, n, rd:   is_nullable(rd[n]),
 }, Grammar))
 
 
@@ -45,6 +46,7 @@ parse_null: Callable[[Grammar], List[Tree[Value]]] = fix(list, EqType.Eq)(match(
     Alt: lambda _, g1, g2:  parse_null(g1) + parse_null(g2),
     Seq: lambda _, g1, g2:  [Branch(t1, t2) for t1 in parse_null(g1) for t2 in parse_null(g2)],
     Red: lambda _, g, f:    [f(t) for t in parse_null(g)],
+    Ref: lambda _, n, rd:   parse_null(rd[n]),
 }, Grammar))
 
 
@@ -64,6 +66,7 @@ derive: Callable[[Grammar, Value], Grammar] = memoize(EqType.Equal, EqType.Eq)(m
     Alt: lambda _, c, g1, g2:  alt(derive(g1, c), derive(g2, c)),
     Seq: lambda _, c, g1, g2:  derive_seq(c, g1, g2),
     Red: lambda _, c, g, f:    red(derive(g, c), f),
+    Ref: lambda _, c, n, rd:   derive(rd[n], c),
 }, Grammar, ('g_', 'c')))
 
 
@@ -104,6 +107,7 @@ make_compact: Callable[[Grammar], Grammar] = memoize(EqType.Eq)(match_pred({
           lambda g:         g.__class__ is Red:                 lambda g, f:    red(make_compact(g.g),
                                                                                     lambda t: g.f(t)),
           lambda:           True:                               lambda g, f:    red(make_compact(g), f)},
+    Ref: {lambda:           True:                               lambda n, rd:   make_compact(rd[n])},
 }, ('g_',)))
 
 
