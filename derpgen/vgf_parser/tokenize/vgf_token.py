@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 
 
-__all__ = ['VgfToken', 'WhitespaceToken', 'CommentToken', 'StringToken', 'BracedTextToken', 'BracketedTextToken',
-           'CapitalWordToken', 'AllCapitalWordToken', 'LowercaseWordToken', 'ConstantToken', 'AssignToken', 'PipeToken',
-           'ColonToken', 'ModifierToken', 'QuestionMarkToken', 'StarToken', 'PlusToken', 'AmpersandStarToken',
-           'AmpersandPlusToken']
+__all__ = ['VgfToken',
+           'WhitespaceToken', 'CommentToken', 'StringToken', 'BracedTextToken', 'BracketedTextToken', 'SectionToken',
+           'CapitalWordToken', 'AllCapitalWordToken', 'LowercaseWordToken', 'RegexToken',
+           'ConstantToken', 'AssignToken', 'EqualsToken', 'PipeToken', 'ColonToken',
+           'ModifierToken', 'QuestionMarkToken', 'StarToken', 'PlusToken', 'AmpersandStarToken', 'AmpersandPlusToken']
 
 
 @dataclass
@@ -27,6 +28,11 @@ class WhitespaceToken(VgfToken):
 class CommentToken(VgfToken):
     def __str__(self) -> str:
         return '#' + self.text
+
+
+class SectionToken(VgfToken):
+    def __str__(self) -> str:
+        return '%' + self.text
 
 
 class StringToken(VgfToken):
@@ -56,6 +62,10 @@ class LowercaseWordToken(VgfToken):
     pass
 
 
+class RegexToken(VgfToken):
+    pass
+
+
 class ConstantToken(VgfToken):
     match_text = None
 
@@ -70,6 +80,10 @@ class ConstantToken(VgfToken):
 
 class AssignToken(ConstantToken):
     match_text = '::='
+
+
+class EqualsToken(ConstantToken):
+    match_text = '='
 
 
 class PipeToken(ConstantToken):

@@ -12,7 +12,20 @@ __all__ = ['tokenize_grammar_file']
 
 RE_WHITESPACE = re.compile(r'(\s+)')
 
+RE_COMMENT = re.compile(r'#(.*)$')
+RE_SECTION_LINE_TEXT = re.compile(r'^%(.+)$')
+RE_QUOTED_TEXT = re.compile(r'\"((?:\\.|[^\"\\])*)\"'
+                            r'|'
+                            r'\'((?:\\.|[^\'\\])*)\'')
+RE_BRACED_TEXT = re.compile(r'{([^}]+)}')
+RE_BRACKETED_TEXT = re.compile(r'<([^>]+)>')
+RE_CAPITAL_TEXT = re.compile(r'([A-Z]\w*[a-z]\w*)')
+RE_ALL_CAPITAL_TEXT = re.compile(r'([A-Z_]+)')
+RE_LOWERCASE_TEXT = re.compile(r'([a-z]\w+)')
+RE_REGEX_TEXT = re.compile(r'(\(.+\))')
+
 RE_ASSIGN = re.compile(r'(' + re.escape(AssignToken.match_text) + r')')
+RE_EQUALS = re.compile(r'(' + re.escape(EqualsToken.match_text) + r')')
 RE_PIPE = re.compile(r'(' + re.escape(PipeToken.match_text) + r')')
 RE_COLON = re.compile(r'(' + re.escape(ColonToken.match_text) + r')')
 RE_STAR = re.compile(r'(' + re.escape(StarToken.match_text) + r')')
@@ -21,20 +34,21 @@ RE_AMPERSAND_STAR = re.compile(r'(' + re.escape(AmpersandStarToken.match_text) +
 RE_AMPERSAND_PLUS = re.compile(r'(' + re.escape(AmpersandPlusToken.match_text) + r')')
 RE_QUESTION_MARK = re.compile(r'(' + re.escape(QuestionMarkToken.match_text) + r')')
 
-RE_COMMENT = re.compile(r'#(.*)$')
-RE_STRING = re.compile(r'\"((?:\\.|[^\"\\])*)\"'
-                       r'|'
-                       r'\'((?:\\.|[^\'\\])*)\'')
-RE_BRACED_TEXT = re.compile(r'{([^}]+)}')
-RE_BRACKETED_TEXT = re.compile(r'<([^>]+)>')
-RE_CAPITAL_TEXT = re.compile(r'([A-Z]\w*[a-z]\w*)')
-RE_ALL_CAPITAL_TEXT = re.compile(r'([A-Z_]+)')
-RE_LOWERCASE_TEXT = re.compile(r'([a-z]\w+)')
-
 ALL_RES: List[Tuple[Pattern, Type[VgfToken]]] = [
     (RE_WHITESPACE, WhitespaceToken),
 
+    (RE_COMMENT, CommentToken),
+    (RE_SECTION_LINE_TEXT, SectionToken),
+    (RE_QUOTED_TEXT, StringToken),
+    (RE_BRACED_TEXT, BracedTextToken),
+    (RE_BRACKETED_TEXT, BracketedTextToken),
+    (RE_CAPITAL_TEXT, CapitalWordToken),
+    (RE_ALL_CAPITAL_TEXT, AllCapitalWordToken),
+    (RE_LOWERCASE_TEXT, LowercaseWordToken),
+    (RE_REGEX_TEXT, RegexToken),
+
     (RE_ASSIGN, AssignToken),
+    (RE_EQUALS, EqualsToken),
     (RE_PIPE, PipeToken),
     (RE_COLON, ColonToken),
     (RE_STAR, StarToken),
@@ -42,14 +56,6 @@ ALL_RES: List[Tuple[Pattern, Type[VgfToken]]] = [
     (RE_AMPERSAND_STAR, AmpersandStarToken),
     (RE_AMPERSAND_PLUS, AmpersandPlusToken),
     (RE_QUESTION_MARK, QuestionMarkToken),
-
-    (RE_COMMENT, CommentToken),
-    (RE_STRING, StringToken),
-    (RE_BRACED_TEXT, BracedTextToken),
-    (RE_BRACKETED_TEXT, BracketedTextToken),
-    (RE_CAPITAL_TEXT, CapitalWordToken),
-    (RE_ALL_CAPITAL_TEXT, AllCapitalWordToken),
-    (RE_LOWERCASE_TEXT, LowercaseWordToken),
 ]
 
 
@@ -94,7 +100,8 @@ class LongestRegexMatcher:
 
     def emit(self, line_no: int, char_no: int) -> VgfToken:
         if self._match is None:
-            raise TokenizerError(f"No match produced for line: {self.line_repr}")
+            raise TokenizerError(f"No match produced for token on line {line_no} "
+                                 f"at position {char_no}: {self.line_repr}")
         return self._cls(self.group(1), line_no, char_no)
 
     def advance(self):
@@ -109,6 +116,7 @@ class LongestRegexMatcher:
 def tokenize_grammar_file(filename: str) -> List[VgfToken]:
     line_no = 0
     tokens = []
+
     with open(filename) as f:
         for line in f:
             line_no += 1
