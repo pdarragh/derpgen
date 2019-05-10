@@ -2,6 +2,8 @@ from .production import *
 from .production_part import *
 from ..tokenize import *
 
+from derpgen.utility import has_class
+
 from typing import Dict, List, NamedTuple, Type
 
 
@@ -52,7 +54,7 @@ class ParserError(RuntimeError):
 
 def parse_grammar_file(filename: str) -> Dict[str, List[Production]]:
     # Lex the grammar, then strip all whitespace and comments.
-    tokens = list(filter(lambda t: not (isinstance(t, WhitespaceToken) or isinstance(t, CommentToken)),
+    tokens = list(filter(lambda t: not (has_class(t, WhitespaceToken) or has_class(t, CommentToken)),
                          tokenize_grammar_file(filename)))
     parsed_rules = parse_rules(tokens)
     return parsed_rules
@@ -69,21 +71,21 @@ def parse_rules(tokens: List[VgfToken]) -> Dict[str, List[Production]]:
     rules: Dict[str, List[Production]] = {}
     while idx < len(tokens):
         token = tokens[idx]
-        if isinstance(token, WhitespaceToken):
+        if has_class(token, WhitespaceToken):
             idx += 1
-        elif isinstance(token, CommentToken):
+        elif has_class(token, CommentToken):
             idx += 1
-        elif isinstance(token, BracketedTextToken):
+        elif has_class(token, BracketedTextToken):
             rule_name = token.text
             if rule_name in rules:
                 raise ParserError(f"Duplicated definition for rule {rule_name} on line {token.line_no} "
                                   f"at position {token.char_no}.")
             token = next_token()
-            if not isinstance(token, AssignToken):
+            if not has_class(token, AssignToken):
                 raise ParserError(f"Expected assign token ('::=') after rule name on line {token.line_no} "
                                   f"at position {token.char_no}; instead found {str(token)}.")
             token = next_token()
-            if isinstance(token, PipeToken):
+            if has_class(token, PipeToken):
                 # An initial pipe is optional.
                 token = next_token()
             productions = []
@@ -112,30 +114,31 @@ def parse_rule(rule_name: str, tokens: List[VgfToken], idx: int, productions: Li
         if idx >= len(tokens):
             return False
         # Perform lookahead to determine whether we're at the boundary of a new rule definition.
-        if isinstance(tokens[idx], BracketedTextToken):
+        if has_class(tokens[idx], BracketedTextToken):
             if idx + 1 < len(tokens):
-                if isinstance(tokens[idx + 1], AssignToken):
+                if has_class(tokens[idx + 1], AssignToken):
                     return False
         return True
 
     def in_production() -> bool:
         if not in_rule():
             return False
-        return not isinstance(tokens[idx], PipeToken)
+        return not has_class(tokens[idx], PipeToken)
 
     start = idx
     while idx < len(tokens) and in_rule():
-        token = tokens[idx]
+        token: VgfToken = tokens[idx]
         if idx != start:
             # Except for the first production of a rule, all productions must begin with a pipe token ('|').
-            if not isinstance(token, PipeToken):
+            if not has_class(token, PipeToken):
                 raise ParserError(f"Expected pipe token ('|') to begin new production on line {token.line_no} "
                                   f"at position {token.char_no}; instead found {str(token)}.")
             idx += 1
             check_in_bounds(tokens, idx, 'new production')
             token = tokens[idx]
         # Now process the production, beginning after the pipe.
-        if isinstance(token, BracketedTextToken):
+        if has_class(token, BracketedTextToken):
+            token: BracketedTextToken
             # The current token is a rule alias.
             if token.text == rule_name:
                 # But the rule is recursive.
@@ -144,26 +147,30 @@ def parse_rule(rule_name: str, tokens: List[VgfToken], idx: int, productions: Li
             production = RuleAliasProduction(RuleNamePart(token))
             productions.append(production)
             idx += 1
-        elif isinstance(token, CapitalWordToken):
+        elif has_class(token, CapitalWordToken):
+            token: CapitalWordToken
             # The current token begins a non-aliasing production definition.
             name = ProductionNamePart(token)
             parts: List[ProductionPart] = []
             idx += 1
             while in_production():
-                token = tokens[idx]
-                if isinstance(token, StringToken):
+                token: VgfToken = tokens[idx]
+                if has_class(token, StringToken):
+                    token: StringToken
                     part = LiteralPart(token)
                     parts.append(part)
                     idx += 1
-                elif isinstance(token, AllCapitalWordToken):
+                elif has_class(token, AllCapitalWordToken):
+                    token: AllCapitalWordToken
                     part = SpecialPart(token)
                     parts.append(part)
                     idx += 1
-                elif isinstance(token, LowercaseWordToken):
+                elif has_class(token, LowercaseWordToken):
+                    token: LowercaseWordToken
                     name = token
                     idx += 1
                     check_in_bounds(tokens, idx, f'parameter {str(token)}')
-                    if not isinstance(tokens[idx], ColonToken):
+                    if not has_class(tokens[idx], ColonToken):
                         raise ParserError(f"Expected colon token (':') to define parameter matcher "
                                           f"on line {token.line_no} at position {token.char_no}; instead found "
                                           f"{str(tokens[idx])}.")
@@ -186,12 +193,15 @@ def parse_rule(rule_name: str, tokens: List[VgfToken], idx: int, productions: Li
 
 
 def parse_parameter(tokens: List[VgfToken], idx: int) -> ParameterParse:
-    token = tokens[idx]
-    if isinstance(token, StringToken):
+    token: VgfToken = tokens[idx]
+    if has_class(token, StringToken):
+        token: StringToken
         actual = LiteralPart(token)
-    elif isinstance(token, AllCapitalWordToken):
+    elif has_class(token, AllCapitalWordToken):
+        token: AllCapitalWordToken
         actual = SpecialPart(token)
-    elif isinstance(token, BracketedTextToken):
+    elif has_class(token, BracketedTextToken):
+        token: BracketedTextToken
         actual = RuleNamePart(token)
     else:
         raise ParserError(f"Unexpected token {str(token)} on line {token.line_no} at position {token.char_no}; "
@@ -202,21 +212,21 @@ def parse_parameter(tokens: List[VgfToken], idx: int) -> ParameterParse:
         return ParameterParse(actual, idx)
     # There's a modifier.
     token = tokens[idx]
-    if isinstance(token, StarToken):
+    if has_class(token, StarToken):
         modified = ListPart(actual)
-    elif isinstance(token, PlusToken):
+    elif has_class(token, PlusToken):
         modified = NonemptyListPart(actual)
-    elif isinstance(token, AmpersandStarToken):
+    elif has_class(token, AmpersandStarToken):
         idx += 1
         check_in_bounds(tokens, idx, 'separated list')
         token = tokens[idx]
         modified = parse_braced_text(token, actual, SeparatedListPart)
-    elif isinstance(token, AmpersandPlusToken):
+    elif has_class(token, AmpersandPlusToken):
         idx += 1
         check_in_bounds(tokens, idx, 'nonempty separated list')
         token = tokens[idx]
         modified = parse_braced_text(token, actual, NonemptySeparatedListPart)
-    elif isinstance(token, QuestionMarkToken):
+    elif has_class(token, QuestionMarkToken):
         modified = OptionalPart(actual)
     else:
         raise ParserError(f"Unknown ModifierPart subclass {type(token).__name__} encountered on line {token.line_no} "
@@ -225,7 +235,7 @@ def parse_parameter(tokens: List[VgfToken], idx: int) -> ParameterParse:
 
 
 def parse_braced_text(token: VgfToken, actual: ActualPart, cls: Type[SeparatedPart]) -> ModifiedPart:
-    if not isinstance(token, BracedTextToken):
+    if not has_class(token, BracedTextToken):
         raise ParserError(f"Unexpected token {str(token)} on line {token.line_no} at position {token.char_no}; "
                           f"expected braced text to denote a separator.")
     # The following arguments are not properly detected by PyCharm, so we suppress inspection.
