@@ -43,7 +43,7 @@ The special tokens correspond to the following meanings:
 """
 
 
-ParameterParse = NamedTuple('TokenParse', [('part', ProductionPart), ('idx', int)])
+ParameterParse = NamedTuple('ParameterParse', [('part', ProductionPart), ('idx', int)])
 
 
 class ParserError(RuntimeError):
