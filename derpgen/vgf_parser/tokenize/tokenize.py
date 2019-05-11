@@ -2,7 +2,7 @@ from .vgf_token import *
 
 import re
 
-from typing import List, Match, Optional, Pattern, Tuple, Type, Union
+from typing import List, Match, Optional, Pattern, Tuple, Type
 
 
 __all__ = ['tokenize_grammar_file']
@@ -63,25 +63,31 @@ class TokenizerError(RuntimeError):
     pass  # TODO: Improve error production.
 
 
+class RegexMultipleGroupError(TokenizerError):
+    pass
+
+
+class RegexNoGroupError(TokenizerError):
+    pass
+
+
 # Regular expression magic class for making if/else matching simpler. Idea from:
 #   http://code.activestate.com/recipes/456151-using-rematch-research-and-regroup-in-if-elif-elif/
 class LongestRegexMatcher:
     def __init__(self, line: str):
         self._line: str = line
         self._match: Optional[Match] = None
+        self._pat: Optional[Pattern] = None
         self._cls: Optional[Type[VgfToken]] = None
 
     def match(self, pattern: Pattern, cls: Type[VgfToken]):
         match = pattern.match(self._line)
-        if self._match is None:
-            if match is not None:
-                self._match = match
-                self._cls = cls
-            return
+
         if match is not None:
-            if match.end() > self.end:
+            if self._match is None or match.end() > self.end:
                 self._match = match
                 self._cls = cls
+                self._pat = pattern
 
     @property
     def end(self) -> int:
@@ -95,14 +101,30 @@ class LongestRegexMatcher:
     def line_repr(self) -> str:
         return repr(self._line)
 
-    def group(self, grp: Union[int, str]) -> str:
-        return self._match.group(grp)
+    def find_matched_group(self) -> str:
+        result = None
+        for group in self._match.groups():
+            if group is not None:
+                if result is not None:
+                    raise RegexMultipleGroupError()
+                result = group
+        if result is None:
+            raise RegexNoGroupError()
+        return result
 
     def emit(self, line_no: int, char_no: int) -> VgfToken:
         if self._match is None:
-            raise TokenizerError(f"No match produced for token on line {line_no} "
+            raise TokenizerError(f"No match produced for token beginning on line {line_no} "
                                  f"at position {char_no}: {self.line_repr}")
-        return self._cls(self.group(1), line_no, char_no)
+        try:
+            group = self.find_matched_group()
+        except RegexMultipleGroupError:
+            raise TokenizerError(f"Regex pattern {str(self._pat.pattern)} produced multiple match groups for token "
+                                 f"beginning on line {line_no} at position {char_no}: {self.line_repr}")
+        except RegexNoGroupError:
+            raise TokenizerError(f"Regex pattern {str(self._pat.pattern)} is poorly formed because it does not produce "
+                                 f"a group.")
+        return self._cls(group, line_no, char_no)
 
     def advance(self):
         self._line = self._line[self.end:]
