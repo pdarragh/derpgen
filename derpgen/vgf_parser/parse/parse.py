@@ -49,10 +49,12 @@ The special tokens correspond to the following meanings:
 RuleDict = Dict[str, List[Production]]
 RegexDict = Dict[str, str]
 ParameterParse = NamedTuple('ParameterParse', [('part', ProductionPart), ('idx', int)])
-SectionsParse = NamedTuple('SectionsParse', [('grammar_parse', RuleDict), ('tokens_parse', RegexDict)])
+SectionsParse = NamedTuple('SectionsParse', [('grammar_parse', RuleDict), ('tokens_parse', RegexDict),
+                                             ('start_symbols', List[str])])
 
 GRAMMAR_SECTION = 'grammar'
 TOKENS_SECTION = 'tokens'
+START_SECTION = 'start'
 
 
 class ParserError(RuntimeError):
@@ -71,17 +73,24 @@ def parse_grammar_file(filename: str) -> SectionsParse:
 
 
 def parse_sections(sections: Dict[str, List[VgfToken]]) -> SectionsParse:
+    # First parse the grammar definition.
     grammar_tokens = sections.get(GRAMMAR_SECTION)
     if grammar_tokens is None:
         raise ParserError(f"No grammar section defined.")
     grammar_parse = parse_grammar_section(grammar_tokens)
+    # Build a list of token definitions which must be declared based on usage.
     needed_definitions = identify_needed_token_definitions(grammar_parse)
+    # Parse the token definitions and ensure necessary definitions are given.
     tokens_tokens = sections.get(TOKENS_SECTION)
     tokens_parse = parse_tokens_section(tokens_tokens)
     missing_definitions = needed_definitions.difference(tokens_parse.keys())
     if missing_definitions:
         raise ParserError(f"Missing definitions for the following special tokens: {', '.join(missing_definitions)}.")
-    return SectionsParse(grammar_parse, tokens_parse)
+    # Parse the start symbol declarations. If there are none, then the first rule will be used.
+    start_tokens = sections.get(START_SECTION)
+    start_parse = parse_start_section(start_tokens, grammar_parse)
+    # Put them all together!
+    return SectionsParse(grammar_parse, tokens_parse, start_parse)
 
 
 def identify_needed_token_definitions(rules: RuleDict) -> Set[str]:
@@ -116,6 +125,17 @@ def break_sections(tokens: List[VgfToken]) -> Dict[str, List[VgfToken]]:
         prev_idx = idx
         section_name = tok.text
     return sections
+
+
+def parse_start_section(tokens: List[VgfToken], rules: RuleDict) -> List[str]:
+    start_symbols = []
+    for token in tokens:
+        name = token.text
+        if name not in rules:
+            raise ParserError(f"No matching rule definition for declared start symbol {name} on line {token.line_no} "
+                              f"at position {token.char_no}.")
+        start_symbols.append(name)
+    return start_symbols
 
 
 def parse_tokens_section(tokens: List[VgfToken]) -> RegexDict:
