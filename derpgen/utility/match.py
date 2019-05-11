@@ -184,9 +184,15 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
         fgs = funcs.get(cls)
         if fgs is None:
             raise NoMatchError(_mdfn, _mdln, cls)
-        f, gs = fgs
-        params: Dict[str, Any] = {name: gs[name](args, x) for name in gs}
-        return f(**params)
+        func, gs = fgs
+        call_params: Dict[str, Any] = {}
+        for name in gs:
+            try:
+                val = gs[name](args, x)
+            except Exception:
+                raise MatchError(_mdfn, _mdln, f"Could not obtain value via getter for param {name}.")
+            call_params[name] = val
+        return func(**call_params)
 
     # Return the match function.
     return do_match
