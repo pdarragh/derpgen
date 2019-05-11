@@ -13,7 +13,7 @@ __all__ = ['tokenize_grammar_file']
 RE_WHITESPACE = re.compile(r'(\s+)')
 RE_COMMENT = re.compile(r'#(.*)$')
 
-RE_DIRECTIVE_TEXT = re.compile(r'^%(.+)')
+RE_DIRECTIVE_TEXT = re.compile(r'^%(.+)%')
 RE_QUOTED_TEXT = re.compile(r'\"((?:\\.|[^\"\\])*)\"'
                             r'|'
                             r'\'((?:\\.|[^\'\\])*)\'')
