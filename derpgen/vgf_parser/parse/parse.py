@@ -102,7 +102,6 @@ def break_sections(tokens: List[VgfToken]) -> Dict[str, List[VgfToken]]:
                                                                  enumerate(tokens)))
     # Add a dummy section token to help with slicing the last section.
     section_tokens.append((len(tokens), SectionToken("DUMMY_SECTION", -1, -1)))
-    print(section_tokens)
     # Extract initial info from first section token.
     prev_idx, tok = section_tokens[0]
     section_name = tok.text
