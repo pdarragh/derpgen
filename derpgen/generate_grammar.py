@@ -22,13 +22,14 @@ Value = TypeVar('Value')
 PartTuple = NamedTuple('PartTuple', [('g', Grammar), ('name', Optional[str])])
 
 
-def generate_grammar_from_file(vgf_file: str) -> GrammarDict:
+def generate_grammar_from_file(vgf_file: str) -> Grammar:
     parsed_sections = parse_grammar_file(vgf_file)
     grammar_dict: GrammarDict = {}
     for rule_name, productions in parsed_sections.grammar_parse.items():
         g = process_rule(productions, grammar_dict, parsed_sections.tokens_parse)
         grammar_dict[rule_name] = g
-    return grammar_dict
+    generated_grammar = alt(*(grammar_dict[s] for s in parsed_sections.start_symbols))
+    return generated_grammar
 
 
 def process_rule(productions: List[Production], rule_dict: GrammarDict, token_definitions: RegexDict) -> Grammar:
