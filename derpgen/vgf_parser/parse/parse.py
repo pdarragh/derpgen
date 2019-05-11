@@ -8,7 +8,7 @@ from itertools import chain
 from typing import Dict, List, NamedTuple, Set, Tuple, Type
 
 
-__all__ = ['parse_grammar_file']
+__all__ = ['RuleDict', 'RegexDict', 'SectionsParse', 'parse_grammar_file']
 
 """
 The following is a (simplified) representation of the grammar for VGF files as
