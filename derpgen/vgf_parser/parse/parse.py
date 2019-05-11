@@ -4,7 +4,8 @@ from ..tokenize import *
 
 from derpgen.utility import has_class
 
-from typing import Dict, List, NamedTuple, Type
+from itertools import chain
+from typing import Dict, List, NamedTuple, Set, Tuple, Type
 
 
 __all__ = ['parse_grammar_file']
@@ -45,22 +46,80 @@ The special tokens correspond to the following meanings:
 """
 
 
+RuleDict = Dict[str, List[Production]]
+RegexDict = Dict[str, str]
 ParameterParse = NamedTuple('ParameterParse', [('part', ProductionPart), ('idx', int)])
+SectionsParse = NamedTuple('SectionsParse', [('grammar_parse', RuleDict), ('tokens_parse', RegexDict)])
+
+GRAMMAR_SECTION = 'grammar'
+TOKENS_SECTION = 'tokens'
 
 
 class ParserError(RuntimeError):
     pass  # TODO: Improve error production.
 
 
-def parse_grammar_file(filename: str) -> Dict[str, List[Production]]:
+def parse_grammar_file(filename: str) -> SectionsParse:
     # Lex the grammar, then strip all whitespace and comments.
     tokens = list(filter(lambda t: not (has_class(t, WhitespaceToken) or has_class(t, CommentToken)),
                          tokenize_grammar_file(filename)))
-    parsed_rules = parse_rules(tokens)
-    return parsed_rules
+    if not tokens:
+        raise ParserError(f"Empty file: {filename}.")
+    sections = break_sections(tokens)
+    parse = parse_sections(sections)
+    return parse
 
 
-def parse_rules(tokens: List[VgfToken]) -> Dict[str, List[Production]]:
+def parse_sections(sections: Dict[str, List[VgfToken]]) -> SectionsParse:
+    grammar_tokens = sections.get(GRAMMAR_SECTION)
+    if grammar_tokens is None:
+        raise ParserError(f"No grammar section defined.")
+    grammar_parse = parse_grammar_section(grammar_tokens)
+    needed_definitions = identify_needed_token_definitions(grammar_parse)
+    tokens_tokens = sections.get(TOKENS_SECTION)
+    tokens_parse = parse_tokens_section(tokens_tokens)
+    missing_definitions = needed_definitions.difference(tokens_parse.keys())
+    if missing_definitions:
+        raise ParserError(f"Missing definitions for the following special tokens: {', '.join(missing_definitions)}.")
+    return SectionsParse(grammar_parse, tokens_parse)
+
+
+def identify_needed_token_definitions(rules: RuleDict) -> Set[str]:
+    needed_definitions = set()
+    for token in chain(*rules.values()):
+        if has_class(token, AllCapitalWordToken):
+            needed_definitions.add(token.text)
+    return needed_definitions
+
+
+def break_sections(tokens: List[VgfToken]) -> Dict[str, List[VgfToken]]:
+    # The first token must be a SectionToken to start the first section.
+    if not has_class(tokens[0], SectionToken):
+        raise ParserError(f"Expected section token ('%section') at beginning of file; instead found {str(tokens[0])}.")
+
+    sections: Dict[str, List[VgfToken]] = {}
+    section_tokens: List[Tuple[int, SectionToken]] = list(filter(lambda p: has_class(p[1], SectionToken),
+                                                                 enumerate(tokens)))
+    # Add a dummy section token to help with slicing the last section.
+    section_tokens.append((len(tokens), SectionToken("DUMMY_SECTION", -1, -1)))
+    print(section_tokens)
+    # Extract initial info from first section token.
+    prev_idx, tok = section_tokens[0]
+    section_name = tok.text
+    for idx, tok in section_tokens[1:]:
+        # Get the next slice, leaving out the initial SectionToken.
+        token_slice = tokens[prev_idx+1:idx]
+        # Add the slice to the section.
+        section = sections.get(section_name, [])
+        section.extend(token_slice)
+        sections[section_name] = section
+        # Update info for next section slice.
+        prev_idx = idx
+        section_name = tok.text
+    return sections
+
+
+def parse_tokens_section(tokens: List[VgfToken]) -> RegexDict:
     idx = 0
 
     def next_token() -> VgfToken:
@@ -68,17 +127,45 @@ def parse_rules(tokens: List[VgfToken]) -> Dict[str, List[Production]]:
         idx += 1
         return tokens[idx]
 
-    rules: Dict[str, List[Production]] = {}
+    regexes: RegexDict = {}
     while idx < len(tokens):
         token = tokens[idx]
-        if has_class(token, WhitespaceToken):
+        if has_class(token, AllCapitalWordToken):
+            name = token.text
+            if name in regexes:
+                raise ParserError(f"Duplicate definition for special token {name} on line {token.line_no} "
+                                  f"at position {token.char_no}.")
+            token = next_token()
+            if not has_class(token, EqualsToken):
+                raise ParserError(f"Expected equals token ('=') after special token name on line {token.line_no} "
+                                  f"at position {token.char_no}; instead found {str(token)}.")
+            token = next_token()
+            if not has_class(token, StringToken):
+                raise ParserError(f"Expected string token (''...'' or '\"...\"') after equals token "
+                                  f"on line {token.line_no} at position {token.char_no}; instead found {str(token)}.")
+            regexes[name] = token.text
             idx += 1
-        elif has_class(token, CommentToken):
-            idx += 1
-        elif has_class(token, BracketedTextToken):
+        else:
+            raise ParserError(f"Unexpected token {str(token)} on line {token.line_no} at position {token.char_no}; "
+                              f"expected new special token definition.")
+    return regexes
+
+
+def parse_grammar_section(tokens: List[VgfToken]) -> RuleDict:
+    idx = 0
+
+    def next_token() -> VgfToken:
+        nonlocal idx
+        idx += 1
+        return tokens[idx]
+
+    rules: RuleDict = {}
+    while idx < len(tokens):
+        token = tokens[idx]
+        if has_class(token, BracketedTextToken):
             rule_name = token.text
             if rule_name in rules:
-                raise ParserError(f"Duplicated definition for rule {rule_name} on line {token.line_no} "
+                raise ParserError(f"Duplicate definition for rule {rule_name} on line {token.line_no} "
                                   f"at position {token.char_no}.")
             token = next_token()
             if not has_class(token, AssignToken):
@@ -108,7 +195,6 @@ def check_in_bounds(tokens: List[VgfToken], idx: int, hint: str):
 
 
 def parse_rule(rule_name: str, tokens: List[VgfToken], idx: int, productions: List[Production]) -> int:
-
     def in_rule() -> bool:
         # Check whether we've reached the end of the file.
         if idx >= len(tokens):
