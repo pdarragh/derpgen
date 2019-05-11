@@ -3,13 +3,13 @@ from .tree import Tree
 from derpgen.utility import has_class
 
 from dataclasses import dataclass
-from typing import Callable, Dict, Generic, List, TypeVar
+from typing import Callable, Dict, Generic, List, Pattern, TypeVar
 
 
 __all__ = [
     'Grammar', 'unit', 'GrammarDict',
-    'Nil', 'Eps', 'Tok', 'Rep', 'Alt', 'Seq', 'Red', 'Ref',
-    'nil', 'eps', 'tok', 'rep', 'alt', 'seq', 'red', 'ref',
+    'Nil', 'Eps', 'Tok', 'Pat', 'Rep', 'Alt', 'Seq', 'Red', 'Ref',
+    'nil', 'eps', 'tok', 'pat', 'rep', 'alt', 'seq', 'red', 'ref',
 ]
 
 
@@ -38,6 +38,11 @@ class Eps(Grammar[Value]):
 @dataclass
 class Tok(Grammar[Value]):
     t: Value
+
+
+@dataclass
+class Pat(Grammar[Value]):
+    p: Pattern
 
 
 @dataclass
@@ -90,6 +95,10 @@ def eps(ts: List[Tree[Value]]) -> Grammar:
 
 def tok(t: Value) -> Grammar:
     return Tok(t)
+
+
+def pat(p: Pattern) -> Grammar:
+    return Pat(p)
 
 
 def rep(g: Grammar) -> Grammar:
