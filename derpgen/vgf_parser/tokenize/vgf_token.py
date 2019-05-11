@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 __all__ = ['VgfToken',
            'WhitespaceToken', 'CommentToken', 'StringToken', 'BracedTextToken', 'BracketedTextToken', 'SectionToken',
-           'CapitalWordToken', 'AllCapitalWordToken', 'LowercaseWordToken', 'RegexToken',
+           'CapitalWordToken', 'AllCapitalWordToken', 'LowercaseWordToken',
            'ConstantToken', 'AssignToken', 'EqualsToken', 'PipeToken', 'ColonToken',
            'ModifierToken', 'QuestionMarkToken', 'StarToken', 'PlusToken', 'AmpersandStarToken', 'AmpersandPlusToken']
 
@@ -59,10 +59,6 @@ class AllCapitalWordToken(VgfToken):
 
 
 class LowercaseWordToken(VgfToken):
-    pass
-
-
-class RegexToken(VgfToken):
     pass
 
 

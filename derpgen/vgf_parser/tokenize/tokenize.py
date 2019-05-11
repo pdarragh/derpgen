@@ -22,7 +22,6 @@ RE_BRACKETED_TEXT = re.compile(r'<([^>]+)>')
 RE_CAPITAL_TEXT = re.compile(r'([A-Z]\w*[a-z]\w*)')
 RE_ALL_CAPITAL_TEXT = re.compile(r'([A-Z_]+)')
 RE_LOWERCASE_TEXT = re.compile(r'([a-z]\w+)')
-RE_REGEX_TEXT = re.compile(r'(\(.+\))')
 
 RE_ASSIGN = re.compile(r'(' + re.escape(AssignToken.match_text) + r')')
 RE_EQUALS = re.compile(r'(' + re.escape(EqualsToken.match_text) + r')')
@@ -45,7 +44,6 @@ ALL_RES: List[Tuple[Pattern, Type[VgfToken]]] = [
     (RE_CAPITAL_TEXT, CapitalWordToken),
     (RE_ALL_CAPITAL_TEXT, AllCapitalWordToken),
     (RE_LOWERCASE_TEXT, LowercaseWordToken),
-    (RE_REGEX_TEXT, RegexToken),
 
     (RE_ASSIGN, AssignToken),
     (RE_EQUALS, EqualsToken),
