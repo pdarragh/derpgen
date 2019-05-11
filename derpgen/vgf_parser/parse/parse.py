@@ -82,13 +82,20 @@ def parse_sections(sections: Dict[str, List[VgfToken]]) -> SectionsParse:
     needed_definitions = identify_needed_token_definitions(grammar_parse)
     # Parse the token definitions and ensure necessary definitions are given.
     tokens_tokens = sections.get(TOKENS_SECTION)
-    tokens_parse = parse_tokens_section(tokens_tokens)
+    if tokens_tokens is None:
+        tokens_parse = {}
+    else:
+        tokens_parse = parse_tokens_section(tokens_tokens)
     missing_definitions = needed_definitions.difference(tokens_parse.keys())
     if missing_definitions:
         raise ParserError(f"Missing definitions for the following special tokens: {', '.join(missing_definitions)}.")
     # Parse the start symbol declarations. If there are none, then the first rule will be used.
     start_tokens = sections.get(START_SECTION)
-    start_parse = parse_start_section(start_tokens, grammar_parse)
+    if start_tokens is None:
+        # If no start symbols are declared, use the first rule as a default.
+        start_parse = {next(iter(grammar_parse))}
+    else:
+        start_parse = parse_start_section(start_tokens, grammar_parse)
     # Put them all together!
     return SectionsParse(grammar_parse, tokens_parse, start_parse)
 
