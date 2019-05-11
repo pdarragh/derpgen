@@ -50,7 +50,7 @@ RuleDict = Dict[str, List[Production]]
 RegexDict = Dict[str, str]
 ParameterParse = NamedTuple('ParameterParse', [('part', ProductionPart), ('idx', int)])
 SectionsParse = NamedTuple('SectionsParse', [('grammar_parse', RuleDict), ('tokens_parse', RegexDict),
-                                             ('start_symbols', List[str])])
+                                             ('start_symbols', Set[str])])
 
 GRAMMAR_SECTION = 'grammar'
 TOKENS_SECTION = 'tokens'
@@ -127,14 +127,17 @@ def break_sections(tokens: List[VgfToken]) -> Dict[str, List[VgfToken]]:
     return sections
 
 
-def parse_start_section(tokens: List[VgfToken], rules: RuleDict) -> List[str]:
-    start_symbols = []
+def parse_start_section(tokens: List[VgfToken], rules: RuleDict) -> Set[str]:
+    start_symbols = set()
     for token in tokens:
         name = token.text
         if name not in rules:
             raise ParserError(f"No matching rule definition for declared start symbol {name} on line {token.line_no} "
                               f"at position {token.char_no}.")
-        start_symbols.append(name)
+        if name in start_symbols:
+            raise ParserError(f"Duplicate declaration of start symbol {name} on line {token.line_no} "
+                              f"at position {token.char_no}.")
+        start_symbols.add(name)
     return start_symbols
 
 
