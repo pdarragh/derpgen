@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 __all__ = ['VgfToken',
-           'WhitespaceToken', 'CommentToken', 'StringToken', 'BracedTextToken', 'BracketedTextToken', 'SectionToken',
+           'WhitespaceToken', 'CommentToken', 'StringToken', 'BracedTextToken', 'BracketedTextToken', 'DirectiveToken',
            'CapitalWordToken', 'AllCapitalWordToken', 'LowercaseWordToken',
            'ConstantToken', 'AssignToken', 'EqualsToken', 'PipeToken', 'ColonToken',
            'ModifierToken', 'QuestionMarkToken', 'StarToken', 'PlusToken', 'AmpersandStarToken', 'AmpersandPlusToken']
@@ -30,7 +30,7 @@ class CommentToken(VgfToken):
         return '#' + self.text
 
 
-class SectionToken(VgfToken):
+class DirectiveToken(VgfToken):
     def __str__(self) -> str:
         return '%' + self.text
 

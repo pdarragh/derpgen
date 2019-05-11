@@ -94,14 +94,14 @@ def identify_needed_token_definitions(rules: RuleDict) -> Set[str]:
 
 def break_sections(tokens: List[VgfToken]) -> Dict[str, List[VgfToken]]:
     # The first token must be a SectionToken to start the first section.
-    if not has_class(tokens[0], SectionToken):
+    if not has_class(tokens[0], DirectiveToken):
         raise ParserError(f"Expected section token ('%section') at beginning of file; instead found {str(tokens[0])}.")
 
     sections: Dict[str, List[VgfToken]] = {}
-    section_tokens: List[Tuple[int, SectionToken]] = list(filter(lambda p: has_class(p[1], SectionToken),
-                                                                 enumerate(tokens)))
+    section_tokens: List[Tuple[int, DirectiveToken]] = list(filter(lambda p: has_class(p[1], DirectiveToken),
+                                                                   enumerate(tokens)))
     # Add a dummy section token to help with slicing the last section.
-    section_tokens.append((len(tokens), SectionToken("DUMMY_SECTION", -1, -1)))
+    section_tokens.append((len(tokens), DirectiveToken("DUMMY_SECTION", -1, -1)))
     # Extract initial info from first section token.
     prev_idx, tok = section_tokens[0]
     section_name = tok.text

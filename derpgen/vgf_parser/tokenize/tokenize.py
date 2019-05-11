@@ -11,9 +11,9 @@ __all__ = ['tokenize_grammar_file']
 # TODO: The regexes use ASCII patterns, but should support all Unicode upper- and lowercase letters appropriately.
 
 RE_WHITESPACE = re.compile(r'(\s+)')
-
 RE_COMMENT = re.compile(r'#(.*)$')
-RE_SECTION_LINE_TEXT = re.compile(r'^%(.+)$')
+
+RE_DIRECTIVE_TEXT = re.compile(r'^%(.+)')
 RE_QUOTED_TEXT = re.compile(r'\"((?:\\.|[^\"\\])*)\"'
                             r'|'
                             r'\'((?:\\.|[^\'\\])*)\'')
@@ -35,9 +35,9 @@ RE_QUESTION_MARK = re.compile(r'(' + re.escape(QuestionMarkToken.match_text) + r
 
 ALL_RES: List[Tuple[Pattern, Type[VgfToken]]] = [
     (RE_WHITESPACE, WhitespaceToken),
-
     (RE_COMMENT, CommentToken),
-    (RE_SECTION_LINE_TEXT, SectionToken),
+
+    (RE_DIRECTIVE_TEXT, DirectiveToken),
     (RE_QUOTED_TEXT, StringToken),
     (RE_BRACED_TEXT, BracedTextToken),
     (RE_BRACKETED_TEXT, BracketedTextToken),
