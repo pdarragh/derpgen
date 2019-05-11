@@ -1,4 +1,4 @@
-%grammar
+%grammar%
 
 <rule>          ::= Rule name:<rule_name> '::=' '|' productions:<production>&+{|}
 <production>    ::= NamedProduction name:CAP_WORD parts:<part>+
@@ -16,7 +16,7 @@
                   | AmpersandPlus '&+' '{' separator:SEP_STRING '}'
 <rule_name>     ::= RuleName '<' name:LOW_WORD '>'
 
-%tokens
+%tokens%
 
 LOW_WORD        = '([a-z]\w+)'
 CAP_WORD        = '([A-Z]\w*[a-z]\w*)'
@@ -24,3 +24,5 @@ ALL_CAP_WORD    = '([A-Z_]+)'
 SEP_STRING      = '([^}]+)'
 DQ_STRING       = '((?:\\.|[^\"\\])*)'
 SQ_STRING       = '((?:\\.|[^\'\\])*)'
+
+%start% rule
