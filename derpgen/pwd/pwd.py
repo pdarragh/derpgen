@@ -40,6 +40,19 @@ is_nullable: Callable[[Grammar], bool] = fix(lambda: True, EqType.Eq)(match({
 }, Grammar))
 
 
+is_null: Callable[[Grammar], bool] = fix(lambda: True, EqType.Eq)(match({
+    Nil: lambda _:          False,
+    Eps: lambda _, ts:      True,
+    Tok: lambda _, t:       False,
+    Pat: lambda _, p:       False,
+    Rep: lambda _, g:       is_null(g),
+    Alt: lambda _, g1, g2:  is_null(g1) and is_null(g2),
+    Seq: lambda _, g1, g2:  is_null(g1) and is_null(g2),
+    Red: lambda _, g, f:    is_null(g),
+    Ref: lambda _, n, rd:   is_null(rd[n]),
+}, Grammar))
+
+
 parse_null: Callable[[Grammar], List[Tree[Value]]] = fix(list, EqType.Eq)(match({
     Nil: lambda _:          [],
     Eps: lambda _, ts:      ts,
@@ -53,12 +66,16 @@ parse_null: Callable[[Grammar], List[Tree[Value]]] = fix(list, EqType.Eq)(match(
 }, Grammar))
 
 
+def mk_eps_star(g: Grammar) -> Grammar:
+    return eps(parse_null(g))
+
+
 def derive_seq(c: Value, g1: Grammar, g2: Grammar) -> Grammar:
-    dcl_r = seq(derive(g1, c), g2)
     if is_nullable(g1):
-        return alt(dcl_r, seq(eps(parse_null(g1)), derive(g2, c)))
+        return alt(seq(derive(g1, c), g2),
+                   seq(mk_eps_star(g1), derive(g2, c)))
     else:
-        return dcl_r
+        return seq(derive(g1, c), g2)
 
 
 derive: Callable[[Grammar, Value], Grammar] = memoize(EqType.Equal, EqType.Eq)(match({
@@ -79,7 +96,7 @@ nullp_t: Tree[Value]
 
 def nullp(g: Grammar) -> bool:
     global nullp_t
-    if is_nullable(g):
+    if is_null(g):
         ts = parse_null(g)
         if len(ts) == 1:
             nullp_t = ts[0]
