@@ -8,7 +8,7 @@ from derpgen.utility.memoize import *
 from typing import Callable, List, TypeVar
 
 
-__all__ = ['is_empty', 'is_nullable', 'parse_null', 'derive', 'make_compact', 'parse', 'parse_compact']
+__all__ = ['is_empty', 'is_nullable', 'is_null', 'parse_null', 'derive', 'make_compact', 'parse', 'parse_compact']
 
 
 Value = TypeVar('Value')
