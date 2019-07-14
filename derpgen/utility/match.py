@@ -24,9 +24,12 @@ class MatchDefinitionError(MatchError):
 
 class ClauseSignatureError(MatchDefinitionError):
     def __init__(self, mdfn: str, mdln: int, cls: Type, extra_params: List[str], missing_params: List[str]):
-        super().__init__(mdfn, mdln, f"{cls.__name__} clause did not match all necessary arguments.\n"
-                                     f"  Unexpected arguments: {', '.join(extra_params)}\n"
-                                     f"  Missing arguments: {', '.join(missing_params)}")
+        msg = f"{cls.__name__} clause signature mismatch."
+        if extra_params:
+            msg += f"\n  Unexpected arguments: {', '.join(extra_params)}"
+        if missing_params:
+            msg += f"\n  Missing arguments: {', '.join(missing_params)}"
+        super().__init__(mdfn, mdln, msg)
 
 
 class NonExhaustiveMatchError(MatchDefinitionError):
