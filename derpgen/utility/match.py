@@ -159,6 +159,10 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
         if len(sig_params) != len(func_params):
             extra_params = [param for param in sig_params if param not in func_params]
             missing_params = [param for param in func_params if param not in sig_params]
+            # Remove arguments that would have been supplied but whose names didn't match.
+            min_len = min(len(extra_params), len(missing_params))
+            extra_params = extra_params[min_len:]
+            missing_params = missing_params[min_len:]
             raise ClauseSignatureError(_mdfn, _mdln, extra_params, missing_params)
         # Build getter-function for each parameter.
         getters: Dict[str, Callable[[List[Any], Any], Any]] = {}
