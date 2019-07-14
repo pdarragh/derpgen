@@ -1,4 +1,4 @@
-from inspect import getframeinfo, signature, stack, Traceback
+from inspect import findsource, getframeinfo, signature, stack, Traceback
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 
@@ -23,8 +23,8 @@ class MatchDefinitionError(MatchError):
 
 
 class ClauseSignatureError(MatchDefinitionError):
-    def __init__(self, mdfn: str, mdln: int, cls: Type, extra_params: List[str], missing_params: List[str]):
-        msg = f"{cls.__name__} clause signature mismatch."
+    def __init__(self, mdfn: str, mdln: int, cls: Type, src_ln: int, extra_params: List[str], missing_params: List[str]):
+        msg = f"{cls.__name__} clause signature mismatch on line {src_ln}."
         if extra_params:
             msg += f"\n  Unexpected arguments: {', '.join(extra_params)}"
         if missing_params:
@@ -166,7 +166,10 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
             min_len = min(len(extra_params), len(missing_params))
             extra_params = extra_params[min_len:]
             missing_params = missing_params[min_len:]
-            raise ClauseSignatureError(_mdfn, _mdln, t, extra_params, missing_params)
+            # Find the source line number of the offending clause.
+            _, src_ln = findsource(f)
+            src_ln += 1  # Line numbers from `findsource` are 0-indexed.
+            raise ClauseSignatureError(_mdfn, _mdln, t, src_ln, extra_params, missing_params)
         # Build getter-function for each parameter.
         getters: Dict[str, Callable[[List[Any], Any], Any]] = {}
         for i, name in enumerate(sig_params):
