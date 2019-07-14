@@ -23,8 +23,8 @@ class MatchDefinitionError(MatchError):
 
 
 class ClauseSignatureError(MatchDefinitionError):
-    def __init__(self, mdfn: str, mdln: int, extra_params: List[str], missing_params: List[str]):
-        super().__init__(mdfn, mdln, f"Given function signature did not match necessary arguments.\n"
+    def __init__(self, mdfn: str, mdln: int, cls: Type, extra_params: List[str], missing_params: List[str]):
+        super().__init__(mdfn, mdln, f"{cls.__name__} clause did not match all necessary arguments.\n"
                                      f"  Unexpected arguments: {', '.join(extra_params)}\n"
                                      f"  Missing arguments: {', '.join(missing_params)}")
 
@@ -163,7 +163,7 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
             min_len = min(len(extra_params), len(missing_params))
             extra_params = extra_params[min_len:]
             missing_params = missing_params[min_len:]
-            raise ClauseSignatureError(_mdfn, _mdln, extra_params, missing_params)
+            raise ClauseSignatureError(_mdfn, _mdln, t, extra_params, missing_params)
         # Build getter-function for each parameter.
         getters: Dict[str, Callable[[List[Any], Any], Any]] = {}
         for i, name in enumerate(sig_params):
