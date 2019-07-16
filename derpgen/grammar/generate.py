@@ -1,4 +1,4 @@
-from .parsers import *
+from .grammar import *
 from .transformers import (
     optional_t                  as opt,
     list_t                      as lst,
@@ -6,9 +6,9 @@ from .transformers import (
     separated_list_t            as sep_lst,
     nonempty_separated_list_t   as min_sep_lst
 )
-from .vgf_parser import *
 
 from derpgen.utility.match import *
+from derpgen.vgf_parser import *
 
 from typing import Callable, List, NamedTuple, Optional, TypeVar
 

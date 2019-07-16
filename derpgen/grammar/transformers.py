@@ -1,4 +1,4 @@
-from .parsers import *
+from .grammar import *
 
 from typing import TypeVar
 

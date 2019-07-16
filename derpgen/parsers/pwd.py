@@ -1,6 +1,4 @@
-from .grammar import *
-from .tree import *
-
+from derpgen.grammar import *
 from derpgen.utility.fixed_points import *
 from derpgen.utility.match import *
 from derpgen.utility.memoize import *
