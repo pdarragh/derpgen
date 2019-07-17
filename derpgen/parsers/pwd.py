@@ -6,7 +6,7 @@ from derpgen.utility.memoize import *
 from typing import Callable, List, TypeVar
 
 
-__all__ = ['is_empty', 'is_nullable', 'is_null', 'parse_null', 'derive', 'make_compact', 'parse', 'parse_compact']
+__all__ = ['is_empty', 'is_nullable', 'is_null', 'parse_null', 'derive', 'make_compact', 'parse']
 
 
 Value = TypeVar('Value')
@@ -137,12 +137,4 @@ def parse(values: List[Value], g: Grammar) -> List[Tree[Value]]:
         return parse_null(g)
     else:
         c, *cs = values
-        return parse(cs, derive(g, c))
-
-
-def parse_compact(values: List[Value], g: Grammar) -> List[Tree[Value]]:
-    if not values:
-        return parse_null(g)
-    else:
-        c, *cs = values
-        return parse_compact(cs, make_compact(derive(g, c)))
+        return parse(cs, make_compact(derive(g, c)))
