@@ -4,7 +4,7 @@ from .tokenizer import *
 from typing import List
 
 
-__all__ = ['Token', 'TokenTypes', 'tokenize_file', 'tokenize_text']
+__all__ = ['Token', 'TokenTypes', 'TokenTypeClasses', 'tokenize_file', 'tokenize_text']
 
 
 class InvalidTokenError(Exception):

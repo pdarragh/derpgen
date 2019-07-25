@@ -1,10 +1,12 @@
+from derpgen.utility import has_class
+
 from dataclasses import dataclass
 from enum import Enum, unique
 from re import compile as re_compile, escape as re_escape
-from typing import Pattern
+from typing import Pattern, Tuple
 
 
-__all__ = ['TokenTypes', 'Token']
+__all__ = ['TokenTypes', 'TokenTypeClasses', 'Token']
 
 
 ENDMARKER_TAG = 0
@@ -83,6 +85,43 @@ class TokenTypes(Enum):
         if other not in TokenTypes:
             return NotImplemented
         return self.tag == other.tag
+
+    def __hash__(self) -> int:
+        return self.tag
+
+
+# PyCharm thinks _auto_int hasn't been used yet at this point, but it was used during creation of the TokenTypes class.
+# noinspection PyRedeclaration
+_auto_int = 0
+
+
+@unique
+class TokenTypeClasses(Enum):
+    WHITESPACE      = (auto(), (TokenTypes.WHITESPACE, TokenTypes.NEWLINE))
+    COMMENTS        = (auto(), (TokenTypes.COMMENT, ))
+    CASES           = (auto(), (TokenTypes.SNAKE_CASE, TokenTypes.CAP_SNAKE_CASE, TokenTypes.PASCAL_CASE,
+                                TokenTypes.CAMEL_CASE))
+    QUOTES          = (auto(), (TokenTypes.DBL_QUOTE_STR, TokenTypes.SNGL_QUOTE_STR))
+    OPERATORS       = (auto(), (TokenTypes.SUBST, TokenTypes.EQUAL, TokenTypes.RE_EQUAL, TokenTypes.COLON,
+                                TokenTypes.PIPE, TokenTypes.MODULO))
+    PARENS          = (auto(), (TokenTypes.L_PAR, TokenTypes.R_PAR))
+    BRACKETS        = (auto(), (TokenTypes.L_BRK, TokenTypes.R_BRK))
+    BRACES          = (auto(), (TokenTypes.L_BRC, TokenTypes.R_BRC))
+    ANGLE_BRACKETS  = (auto(), (TokenTypes.L_ABR, TokenTypes.R_ABR))
+
+    def __init__(self, tag: int, types: Tuple[TokenTypes]):
+        self.tag = tag
+        self.types = types
+
+    def __eq__(self, other) -> bool:
+        if other not in TokenTypeClasses:
+            return NotImplemented
+        return self.tag == other.tag
+
+    def __contains__(self, token_type) -> bool:
+        if not has_class(token_type, TokenTypes):
+            return NotImplemented
+        return token_type in self.types
 
     def __hash__(self) -> int:
         return self.tag
