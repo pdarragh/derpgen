@@ -1,0 +1,28 @@
+%grammar%
+
+<rule>          ::= Rule name:<rule_name> '::=' '|' productions:<production>&+{|}
+<production>    ::= NamedProduction name:CAP_WORD parts:<part>+
+                  | RuleAliasProduction name:<rule_name>
+<part>          ::= ModifiedPart actual:<actual> modifier:<modifier>?
+                  | ParameterPart name:LOW_WORD ':' part:<part>
+<actual>        ::= LiteralPart1 '"' token:DQ_STRING '"'
+                  | LiteralPart2 "'" token:SQ_STRING "'"
+                  | SpecialPart token:ALL_CAP_WORD
+                  | RuleNamePart token:<rule_name>
+<modifier>      ::= QuestionMark '?'
+                  | Star '*'
+                  | Plus '+'
+                  | AmpersandStar '&*' '{' separator:SEP_STRING '}'
+                  | AmpersandPlus '&+' '{' separator:SEP_STRING '}'
+<rule_name>     ::= RuleName '<' name:LOW_WORD '>'
+
+%tokens%
+
+LOW_WORD        = '([a-z]\w+)'
+CAP_WORD        = '([A-Z]\w*[a-z]\w*)'
+ALL_CAP_WORD    = '([A-Z_]+)'
+SEP_STRING      = '([^}]+)'
+DQ_STRING       = '((?:\\.|[^\"\\])*)'
+SQ_STRING       = '((?:\\.|[^\'\\])*)'
+
+%start% rule
