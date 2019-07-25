@@ -23,7 +23,8 @@ class MatchDefinitionError(MatchError):
 
 
 class ClauseSignatureError(MatchDefinitionError):
-    def __init__(self, mdfn: str, mdln: int, cls: Type, src_ln: int, extra_params: List[str], missing_params: List[str]):
+    def __init__(self, mdfn: str, mdln: int, cls: Type, src_ln: int, extra_params: List[str],
+                 missing_params: List[str]):
         msg = f"{cls.__name__} clause signature mismatch on line {src_ln}."
         if extra_params:
             msg += f"\n  Unexpected arguments: {', '.join(extra_params)}"

@@ -19,7 +19,7 @@ def memoize(*eqs: EqType):
     @wraps
     def decorate(func: Callable[..., Val]):
         def wrapper(*args: Any):  # This decorator does not support keyword arguments.
-            key: Key = tuple(get_eq_hash(eqs[i], arg) for (i, arg) in enumerate(args))
+            key: Key = tuple(hash_of_eq(eqs[i], arg) for (i, arg) in enumerate(args))
             val: Val = cache.get(key)
             if val is None:
                 val = delay(lambda: func(*args))
