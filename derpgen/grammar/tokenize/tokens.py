@@ -109,6 +109,10 @@ class TokenTypeClasses(Enum):
     BRACKETS        = (auto(), (TokenTypes.L_BRK, TokenTypes.R_BRK))
     BRACES          = (auto(), (TokenTypes.L_BRC, TokenTypes.R_BRC))
     ANGLE_BRACKETS  = (auto(), (TokenTypes.L_ABR, TokenTypes.R_ABR))
+    GROUPS          = (auto(), (TokenTypes.L_PAR, TokenTypes.R_PAR,
+                                TokenTypes.L_BRK, TokenTypes.R_BRK,
+                                TokenTypes.L_BRC, TokenTypes.R_BRC,
+                                TokenTypes.L_ABR, TokenTypes.R_ABR))
 
     def __init__(self, tag: int, types: Tuple[TokenTypes]):
         self.tag = tag
