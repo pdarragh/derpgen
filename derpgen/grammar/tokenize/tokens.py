@@ -6,7 +6,7 @@ from re import compile as re_compile, escape as re_escape
 from typing import Pattern, Tuple
 
 
-__all__ = ['TokenTypes', 'TokenTypeClasses', 'Token']
+__all__ = ['BRACE_PAIRS', 'TokenTypes', 'TokenTypeClasses', 'Token']
 
 
 ENDMARKER_TAG = 0
@@ -89,6 +89,18 @@ class TokenTypes(Enum):
 
     def __hash__(self) -> int:
         return self.tag
+
+
+BRACE_PAIRS = {
+    TokenTypes.L_PAR: TokenTypes.R_PAR,
+    TokenTypes.R_PAR: TokenTypes.L_PAR,
+    TokenTypes.L_BRK: TokenTypes.R_BRK,
+    TokenTypes.R_BRK: TokenTypes.L_BRK,
+    TokenTypes.L_BRC: TokenTypes.R_BRC,
+    TokenTypes.R_BRC: TokenTypes.L_BRC,
+    TokenTypes.L_ABR: TokenTypes.R_ABR,
+    TokenTypes.R_ABR: TokenTypes.L_ABR,
+}
 
 
 # PyCharm thinks _auto_int hasn't been used yet at this point, but it was used during creation of the TokenTypes class.
