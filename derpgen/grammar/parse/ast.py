@@ -37,6 +37,11 @@ class Literal(AST):
 
 
 @dataclass
+class DeclaredToken(AST):
+    string: str
+
+
+@dataclass
 class PatternMatch(AST):
     name: str
     match: AST

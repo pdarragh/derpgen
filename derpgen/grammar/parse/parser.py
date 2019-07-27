@@ -112,7 +112,7 @@ class Parser:
             string = self.token.value
             self.advance()
             return Literal(string)
-        elif self.token.type is TokenTypes.SNAKE_CASE:
+        elif self.token.type in TokenTypeClasses.LOW_CASES:
             # Snake-case words can mean any of:
             #  1. The beginning of a new rule, which shouldn't be consumed.
             #  2. The beginning of a named field match.
@@ -131,6 +131,10 @@ class Parser:
             name = self.token.value
             self.advance()
             return RuleMatch(name, name)
+        elif self.token.type in TokenTypeClasses.CAP_CASES:
+            string = self.token.value
+            self.advance()
+            return DeclaredToken(string)
         else:
             raise RuntimeError  # TODO
 
