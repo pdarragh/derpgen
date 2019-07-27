@@ -1,13 +1,17 @@
 from .ast import *
+from .matcher import *
 from ..tokenize import *
 
-from typing import Dict, List, Optional, Tuple
+from re import compile as re_compile
+from typing import Dict, List, Optional, Set, Tuple
 
 
 __all__ = ['Parser']
 
 
 RuleDict = Dict[str, Rule]
+TokenDict = Dict[str, Matcher]
+StartSymbolSet = Set[str]
 
 
 class EndOfRule(Exception):
@@ -28,15 +32,14 @@ class Parser:
         if not self.tokens:
             raise ValueError  # TODO
         self.index = 0
-        self.ast = None
-
-    @property
-    def has_tokens(self) -> bool:
-        return self.index < len(self.tokens)
 
     @property
     def token(self) -> Token:
         return self.tokens[self.index]
+
+    @property
+    def has_tokens(self) -> bool:
+        return self.token.type not in TokenTypeClasses.EOF
 
     @property
     def next_token(self) -> Optional[Token]:
@@ -47,10 +50,10 @@ class Parser:
     def advance(self, increment: int = 1):
         self.index += increment
 
-    def parse(self) -> Tuple[RuleDict, ..., ...]:
+    def parse(self) -> Tuple[RuleDict, TokenDict, StartSymbolSet]:
         rules: RuleDict = {}
-        tokens: ... = None
-        start_symbols: ... = None
+        tokens: TokenDict = {}
+        start_symbols: StartSymbolSet = set()
         while self.has_tokens:
             if self.token.type not in TokenTypeClasses.SECTIONS:
                 raise RuntimeError  # TODO
@@ -60,24 +63,23 @@ class Parser:
             if section == RULES:
                 self.parse_rules(rules)
             elif section == TOKENS:
-                print("TOKENS parsing unimplemented.")
-                break
+                self.parse_tokens(tokens)
             elif section == START:
-                print("START parsing unimplemented.")
-                break
+                self.parse_start(start_symbols)
             else:
                 raise RuntimeError  # TODO
         return rules, tokens, start_symbols
 
     def parse_rules(self, rules: RuleDict):
-        while self.token.type not in TokenTypeClasses.SECTIONS:
+        while (self.has_tokens and
+               self.token.type not in TokenTypeClasses.SECTIONS):
             rule = self.parse_rule()
             if rule.name in rules:
                 raise RuntimeError  # TODO
             rules[rule.name] = rule
 
     def parse_rule(self) -> Rule:
-        if self.token.type is not TokenTypes.SNAKE_CASE:
+        if self.token.type not in TokenTypeClasses.LOW_CASES:
             raise RuntimeError  # TODO
         rule_name = self.token.value
         self.advance()
@@ -91,9 +93,9 @@ class Parser:
         return Rule(rule_name, productions)
 
     def parse_production(self) -> Production:
-        if self.token.type is TokenTypes.PASCAL_CASE:
+        if self.token.type in TokenTypeClasses.CAP_CASES:
             return self.parse_named_production()
-        elif self.token.type is TokenTypes.SNAKE_CASE:
+        elif self.token.type in TokenTypeClasses.LOW_CASES:
             return self.parse_alias_production()
         else:
             raise RuntimeError  # TODO
@@ -198,8 +200,36 @@ class Parser:
         self.advance()
         return AliasProduction(alias)
 
-    def parse_tokens(self):
-        ...
+    def parse_tokens(self, tokens: TokenDict):
+        while (self.has_tokens and
+               self.token.type not in TokenTypeClasses.SECTIONS):
+            matcher = self.parse_token_matcher()
+            if matcher.name in tokens:
+                raise RuntimeError  # TODO
+            tokens[matcher.name] = matcher
 
-    def parse_start(self):
-        ...
+    def parse_token_matcher(self) -> Matcher:
+        if self.token.type not in TokenTypeClasses.CAP_CASES:
+            raise RuntimeError  # TODO
+        name = self.token.value
+        self.advance()
+        if self.token.type is TokenTypes.EQUAL:
+            self.advance()
+            literal = self.token.value
+            self.advance()
+            return LiteralMatcher(name, literal)
+        elif self.token.type is TokenTypes.RE_EQUAL:
+            self.advance()
+            pattern = re_compile(self.token.value)
+            self.advance()
+            return RegexMatcher(name, pattern)
+        else:
+            raise RuntimeError  # TODO
+
+    def parse_start(self, start_symbols: StartSymbolSet):
+        while (self.has_tokens and
+               self.token.type not in TokenTypeClasses.SECTIONS):
+            if self.token.type not in TokenTypeClasses.LOW_CASES:
+                raise RuntimeError  # TODO
+            start_symbols.add(self.token.value)
+            self.advance()
