@@ -1,0 +1,60 @@
+%rules%
+
+expr    ::= TermExpr        term
+          | OpExpr          expr op:('+' | '-') term
+term    ::= FactorTerm      factor
+          | OpTerm          term op:('*' | '/') factor
+factor  ::= IntegerFactor   value:INTEGER
+          | ExprGroupFactor '(' expr ')'
+
+%tokens%
+
+PLUS     = '+'
+MINUS    = '-'
+TIMES    = '*'
+DIVIDE   = '/'
+L_PAR    = '('
+R_PAR    = ')'
+INTEGER ^= '-?\d+'
+
+%start% expr
+
+
+# Expected Output
+#
+# The expression
+#   (3 + 2) / (4 * (1 - 6))
+# should produce an AST that looks like:
+#
+# TermExpr
+#   - term: OpTerm
+#             - term: TermExpr
+#                       - term: FactorTerm
+#                                 - factor: ExprGroupFactor
+#                                             - expr: OpExpr
+#                                                       - expr: TermExpr
+#                                                                 - term: FactorTerm
+#                                                                           - factor: IntegerFactor
+#                                                                                     - value: '3'
+#                                                       - op: PLUS
+#                                                       - term: FactorTerm
+#                                                                 - factor: IntegerFactor
+#                                                                             - value: '2'
+#             - op: DIVIDE
+#             - factor: ExprGroupFactor
+#                         - expr: TermExpr
+#                                   - term: OpTerm
+#                                             - term: FactorTerm
+#                                                       - factor: IntegerFactor
+#                                                                   - value: '4'
+#                                             - op: TIMES
+#                                             - factor: ExprGroupFactor
+#                                                         - expr: OpExpr
+#                                                                   - expr: TermExpr
+#                                                                             - term: FactorTerm
+#                                                                                       - factor: IntegerFactor
+#                                                                                                   - value: '1'
+#                                                                   - op: MINUS
+#                                                                   - factor: IntegerFactor
+#                                                                               - value: '6'
+#
