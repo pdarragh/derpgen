@@ -7,6 +7,10 @@ from typing import Dict, List, Optional
 __all__ = ['Parser']
 
 
+class EndOfRule(Exception):
+    pass
+
+
 class Parser:
     def __init__(self, tokens: List[Token]):
         # The parser ignores whitespace.
@@ -33,8 +37,8 @@ class Parser:
             return None
         return self.tokens[self.index + 1]
 
-    def advance(self):
-        self.index += 1
+    def advance(self, increment: int = 1):
+        self.index += increment
 
     def parse(self) -> AST:
         ...
@@ -67,8 +71,8 @@ class Parser:
         rule_name = self.token.value
         self.advance()
         productions = []
-        while ((len(productions) == 0 and self.token.type is TokenTypes.SUBST)
-            or (len(productions)  > 0 and self.token.type is TokenTypes.STICK)):
+        while self.token.type in TokenTypeClasses.DIVIDERS:
+            self.advance()
             production = self.parse_production()
             productions.append(production)
         if not productions:
@@ -89,8 +93,11 @@ class Parser:
         parts = []
         # Keep parsing for parts until either we reach the end of the tokens or the lookahead token indicates we're done
         # with this production.
-        while self.tokens:
-            if self.next_token is not None and self.next_token.type in TokenTypeClasses.DIVIDERS:
+        while (self.tokens and
+               self.token.type not in TokenTypeClasses.DIVIDERS and
+               self.token.type not in TokenTypeClasses.OPERATORS):
+            if self.next_token is not None and self.next_token.type is TokenTypes.SUBST:
+                # If the next token is ::=, then this is the beginning of an entirely new rule.
                 break
             part = self.parse_part()
             parts.append(part)
@@ -101,12 +108,33 @@ class Parser:
     def parse_part(self) -> Part:
         if self.token.type in TokenTypeClasses.GROUPS:
             return self.parse_group()
+        elif self.token.type in TokenTypeClasses.QUOTES:
+            string = self.token.value
+            self.advance()
+            return Literal(string)
         elif self.token.type is TokenTypes.SNAKE_CASE:
-            ...
+            # Snake-case words can mean any of:
+            #  1. The beginning of a new rule, which shouldn't be consumed.
+            #  2. The beginning of a named field match.
+            #  3. A rule name match.
+            if self.next_token is not None:
+                if self.next_token.type is TokenTypes.SUBST:
+                    # This is actually the beginning of a new rule instead of a part of this rule.
+                    raise EndOfRule()
+                elif self.next_token.type is TokenTypes.COLON:
+                    # This is a named field match.
+                    name = self.token.value
+                    self.advance(2)
+                    match = self.parse_part()
+                    return PatternMatch(name, match)
+            # Just a match against the named rule.
+            name = self.token.value
+            self.advance()
+            return RuleMatch(name, name)
         else:
             raise RuntimeError  # TODO
 
-    def parse_group(self) -> ...:
+    def parse_group(self) -> Group:
         if self.token.type is TokenTypes.L_PAR:
             group_type = GroupType.PLAIN
         elif self.token.type is TokenTypes.L_BRK:
@@ -120,12 +148,34 @@ class Parser:
         expected_end_token_type = BRACE_PAIRS[self.token.type]
         self.advance()
         parts = []
+        alternates = []
         while self.token.type is not expected_end_token_type:
-            part = self.parse_part()
+            if self.token.type is TokenTypes.STICK:
+                alternates.append(parts)
+                parts = []
+                self.advance()
+                continue
+            try:
+                part = self.parse_part()
+            except EndOfRule:
+                break
             parts.append(part)
-        if not parts:
-            raise RuntimeError  # TODO
-        return Group(group_type, parts)
+        self.advance()
+        if alternates and parts:
+            alternates.append(parts)
+            parts = []
+        if parts:
+            return SequencedGroup(group_type, parts)
+        elif alternates:
+            processed_alternates = []
+            for alternate_parts in alternates:
+                if len(alternate_parts) == 1:
+                    processed_alternates.append(alternate_parts[0])
+                else:
+                    processed_alternates.append(SequencedGroup(GroupType.PLAIN, alternate_parts))
+            return AlternatingGroup(group_type, processed_alternates)
+        else:
+            return Group(group_type, parts)
 
     def parse_alias_production(self) -> AliasProduction:
         alias = self.token.value
