@@ -111,6 +111,7 @@ _auto_int = 0
 
 @unique
 class TokenTypeClasses(Enum):
+    EOF             = (auto(), (TokenTypes.ENDMARKER, ))
     WHITESPACE      = (auto(), (TokenTypes.WHITESPACE, TokenTypes.NEWLINE))
     COMMENTS        = (auto(), (TokenTypes.COMMENT, ))
     LOW_CASES       = (auto(), (TokenTypes.SNAKE_CASE, TokenTypes.CAMEL_CASE))
