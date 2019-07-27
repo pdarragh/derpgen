@@ -24,7 +24,7 @@ def tokenize_file(filename: str) -> List[Token]:
 def tokenize_text(text: str) -> List[Token]:
     tokens = []
     lines = text.splitlines()
-    for line_no, line in enumerate(lines):
+    for line_no, line in enumerate(lines, start=1):
         line_tokens = []
         tokenizer = LineTokenizer(line, line_no)
         try:
