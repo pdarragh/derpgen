@@ -112,6 +112,8 @@ _auto_int = 0
 class TokenTypeClasses(Enum):
     WHITESPACE      = (auto(), (TokenTypes.WHITESPACE, TokenTypes.NEWLINE))
     COMMENTS        = (auto(), (TokenTypes.COMMENT, ))
+    LOW_CASES       = (auto(), (TokenTypes.SNAKE_CASE, TokenTypes.CAMEL_CASE))
+    CAP_CASES       = (auto(), (TokenTypes.CAP_SNAKE_CASE, TokenTypes.PASCAL_CASE))
     CASES           = (auto(), (TokenTypes.SNAKE_CASE, TokenTypes.CAP_SNAKE_CASE, TokenTypes.PASCAL_CASE,
                                 TokenTypes.CAMEL_CASE))
     QUOTES          = (auto(), (TokenTypes.DBL_QUOTE_STR, TokenTypes.SNGL_QUOTE_STR))
