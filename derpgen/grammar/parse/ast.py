@@ -3,6 +3,10 @@ from enum import Enum, auto, unique
 from typing import List, Union
 
 
+__all__ = ['GroupType', 'AST', 'SequencedGroup', 'AlternatingGroup', 'Group', 'Literal', 'DeclaredToken',
+           'PatternMatch', 'RuleMatch', 'Part', 'NamedProduction', 'AliasProduction', 'Production', 'Rule']
+
+
 @unique
 class GroupType(Enum):
     PLAIN               = auto()

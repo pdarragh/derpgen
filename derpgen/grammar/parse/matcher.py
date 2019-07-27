@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from typing import Pattern
 
 
+__all__ = ['Matcher', 'LiteralMatcher', 'RegexMatcher']
+
+
 @dataclass
 class Matcher:
     name: str
