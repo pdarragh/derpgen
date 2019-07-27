@@ -3,10 +3,10 @@ from .matcher import *
 from ..tokenize import *
 
 from re import compile as re_compile
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, NamedTuple, Optional, Set
 
 
-__all__ = ['Parser']
+__all__ = ['Parser', 'ParsedGrammar']
 
 
 RuleDict = Dict[str, Rule]
@@ -14,24 +14,32 @@ TokenDict = Dict[str, Matcher]
 StartSymbolSet = Set[str]
 
 
+ParsedGrammar = NamedTuple('ParsedGrammar', [('rules', RuleDict),
+                                             ('tokens', TokenDict),
+                                             ('start_symbols', StartSymbolSet)])
+
+
 class EndOfRule(Exception):
     pass
-
-
-RULES   = 'rules'
-TOKENS  = 'tokens'
-START   = 'start'
 
 
 class Parser:
     def __init__(self, tokens: List[Token]):
         # The parser ignores whitespace and comments.
-        self.tokens = list(filter(lambda t: t.type not in TokenTypeClasses.WHITESPACE and
-                                            t.type not in TokenTypeClasses.COMMENTS,
+        self.tokens = list(filter(lambda t: (t.type not in TokenTypeClasses.WHITESPACE and
+                                             t.type not in TokenTypeClasses.COMMENTS),
                                   tokens))
         if not self.tokens:
             raise ValueError  # TODO
         self.index = 0
+        self.rules: RuleDict = {}
+        self.tokens: TokenDict = {}
+        self.start_symbols: StartSymbolSet = set()
+        self.SECTION_DISPATCH = {
+            'rules':    self.parse_rules,
+            'tokens':   self.parse_tokens,
+            'start':    self.parse_start,
+        }
 
     @property
     def token(self) -> Token:
@@ -50,33 +58,23 @@ class Parser:
     def advance(self, increment: int = 1):
         self.index += increment
 
-    def parse(self) -> Tuple[RuleDict, TokenDict, StartSymbolSet]:
-        rules: RuleDict = {}
-        tokens: TokenDict = {}
-        start_symbols: StartSymbolSet = set()
+    def parse(self) -> ParsedGrammar:
         while self.has_tokens:
             if self.token.type not in TokenTypeClasses.SECTIONS:
                 raise RuntimeError  # TODO
             raw_section = self.token.value
             section = raw_section[1:-1].strip().lower()
             self.advance()
-            if section == RULES:
-                self.parse_rules(rules)
-            elif section == TOKENS:
-                self.parse_tokens(tokens)
-            elif section == START:
-                self.parse_start(start_symbols)
-            else:
-                raise RuntimeError  # TODO
-        return rules, tokens, start_symbols
+            self.SECTION_DISPATCH[section]()
+        return ParsedGrammar(self.rules, self.tokens, self.start_symbols)
 
-    def parse_rules(self, rules: RuleDict):
+    def parse_rules(self):
         while (self.has_tokens and
                self.token.type not in TokenTypeClasses.SECTIONS):
             rule = self.parse_rule()
-            if rule.name in rules:
+            if rule.name in self.rules:
                 raise RuntimeError  # TODO
-            rules[rule.name] = rule
+            self.rules[rule.name] = rule
 
     def parse_rule(self) -> Rule:
         if self.token.type not in TokenTypeClasses.LOW_CASES:
@@ -200,13 +198,13 @@ class Parser:
         self.advance()
         return AliasProduction(alias)
 
-    def parse_tokens(self, tokens: TokenDict):
+    def parse_tokens(self):
         while (self.has_tokens and
                self.token.type not in TokenTypeClasses.SECTIONS):
             matcher = self.parse_token_matcher()
-            if matcher.name in tokens:
+            if matcher.name in self.tokens:
                 raise RuntimeError  # TODO
-            tokens[matcher.name] = matcher
+            self.tokens[matcher.name] = matcher
 
     def parse_token_matcher(self) -> Matcher:
         if self.token.type not in TokenTypeClasses.CAP_CASES:
@@ -226,10 +224,13 @@ class Parser:
         else:
             raise RuntimeError  # TODO
 
-    def parse_start(self, start_symbols: StartSymbolSet):
+    def parse_start(self):
         while (self.has_tokens and
                self.token.type not in TokenTypeClasses.SECTIONS):
             if self.token.type not in TokenTypeClasses.LOW_CASES:
                 raise RuntimeError  # TODO
-            start_symbols.add(self.token.value)
+            symbol = self.token.value
+            if symbol in self.start_symbols:
+                raise RuntimeError  # TODO
+            self.start_symbols.add(symbol)
             self.advance()
