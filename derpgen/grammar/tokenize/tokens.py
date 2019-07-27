@@ -155,4 +155,4 @@ class Token:
         return self.value
 
     def __repr__(self) -> str:
-        return f"<{self.type.name} | {self.line_no}:{self.position} | {self.value}>"
+        return f"<{self.type.name} | {self.line_no}:{self.position} | '{self.value}'>"
