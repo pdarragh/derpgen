@@ -38,6 +38,8 @@ class TokenTypes(Enum):
     # Quotes
     DBL_QUOTE_STR   = (r'\"(?:\\.|[^\"\\])*\"', True,   auto())
     SNGL_QUOTE_STR  = (r'\'(?:\\.|[^\'\\])*\'', True,   auto())
+    # Section marker
+    SECTION         = (r'%[^%]+%',              True,   auto())
     # Rule dividers
     SUBST           = ('::=',                   False,  auto())
     STICK           = ('|',                     False,  auto())
@@ -45,7 +47,6 @@ class TokenTypes(Enum):
     EQUAL           = ('=',                     False,  auto())
     RE_EQUAL        = ('^=',                    False,  auto())
     COLON           = (':',                     False,  auto())
-    MODULO          = ('%',                     False,  auto())
     # Group
     L_PAR           = ('(',                     False,  auto())
     R_PAR           = (')',                     False,  auto())
@@ -117,8 +118,9 @@ class TokenTypeClasses(Enum):
     CASES           = (auto(), (TokenTypes.SNAKE_CASE, TokenTypes.CAP_SNAKE_CASE, TokenTypes.PASCAL_CASE,
                                 TokenTypes.CAMEL_CASE))
     QUOTES          = (auto(), (TokenTypes.DBL_QUOTE_STR, TokenTypes.SNGL_QUOTE_STR))
+    SECTIONS        = (auto(), (TokenTypes.SECTION, ))
     DIVIDERS        = (auto(), (TokenTypes.SUBST, TokenTypes.STICK))
-    OPERATORS       = (auto(), (TokenTypes.EQUAL, TokenTypes.RE_EQUAL, TokenTypes.COLON, TokenTypes.MODULO))
+    OPERATORS       = (auto(), (TokenTypes.EQUAL, TokenTypes.RE_EQUAL, TokenTypes.COLON))
     PARENS          = (auto(), (TokenTypes.L_PAR, TokenTypes.R_PAR))
     BRACKETS        = (auto(), (TokenTypes.L_BRK, TokenTypes.R_BRK))
     BRACES          = (auto(), (TokenTypes.L_BRC, TokenTypes.R_BRC))
