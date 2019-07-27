@@ -37,8 +37,11 @@ class LineTokenizer(Iterable[Token]):
                 self._match_if_longest(token_type)
             if self._match is None:
                 raise TokenizerError()
-            text = self._match.group(0)
-            self._line = self._line[len(text):]
+            if self._match.groups():
+                text = self._match.groups()[0]
+            else:
+                text = self._match.group(0)
+            self._line = self._line[len(self._match.group(0)):]
             self._position += len(text)
             return Token(text, self._line_no, self._position, self._token_type)
 

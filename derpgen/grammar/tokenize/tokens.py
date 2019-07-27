@@ -24,41 +24,41 @@ def auto() -> int:
 class TokenTypes(Enum):
     # Endmarker
     # See __init__ below for more information about how the endmarker works.
-    ENDMARKER       = ('',                      False,  ENDMARKER_TAG)
+    ENDMARKER       = ('',                          False,  ENDMARKER_TAG)
     # Whitespace
-    WHITESPACE      = (r'\s+',                  True,   auto())
-    NEWLINE         = (r'\n',                   True,   auto())
+    WHITESPACE      = (r'\s+',                      True,   auto())
+    NEWLINE         = (r'\n',                       True,   auto())
     # Comments
-    COMMENT         = (r'#.*',                  True,   auto())
+    COMMENT         = (r'#.*',                      True,   auto())
     # Cases
-    SNAKE_CASE      = (r'[a-z](?:_|[a-z])*',    True,   auto())
-    CAP_SNAKE_CASE  = (r'[A-Z](?:_|[A-Z])*',    True,   auto())
-    PASCAL_CASE     = (r'[A-Z][a-zA-Z]*',       True,   auto())
-    CAMEL_CASE      = (r'[a-z][a-zA-Z]*',       True,   auto())
+    SNAKE_CASE      = (r'[a-z](?:_|[a-z])*',        True,   auto())
+    CAP_SNAKE_CASE  = (r'[A-Z](?:_|[A-Z])*',        True,   auto())
+    PASCAL_CASE     = (r'[A-Z][a-zA-Z]*',           True,   auto())
+    CAMEL_CASE      = (r'[a-z][a-zA-Z]*',           True,   auto())
     # Quotes
-    DBL_QUOTE_STR   = (r'\"(?:\\.|[^\"\\])*\"', True,   auto())
-    SNGL_QUOTE_STR  = (r'\'(?:\\.|[^\'\\])*\'', True,   auto())
+    DBL_QUOTE_STR   = (r'\"((?:\\.|[^\"\\])*)\"',   True,   auto())
+    SNGL_QUOTE_STR  = (r'\'((?:\\.|[^\'\\])*)\'',   True,   auto())
     # Section marker
-    SECTION         = (r'%[^%]+%',              True,   auto())
+    SECTION         = (r'%[^%]+%',                  True,   auto())
     # Rule dividers
-    SUBST           = ('::=',                   False,  auto())
-    STICK           = ('|',                     False,  auto())
+    SUBST           = ('::=',                       False,  auto())
+    STICK           = ('|',                         False,  auto())
     # Operators
-    EQUAL           = ('=',                     False,  auto())
-    RE_EQUAL        = ('^=',                    False,  auto())
-    COLON           = (':',                     False,  auto())
+    EQUAL           = ('=',                         False,  auto())
+    RE_EQUAL        = ('^=',                        False,  auto())
+    COLON           = (':',                         False,  auto())
     # Group
-    L_PAR           = ('(',                     False,  auto())
-    R_PAR           = (')',                     False,  auto())
+    L_PAR           = ('(',                         False,  auto())
+    R_PAR           = (')',                         False,  auto())
     # Optional (0 or 1)
-    L_BRK           = ('[',                     False,  auto())
-    R_BRK           = (']',                     False,  auto())
+    L_BRK           = ('[',                         False,  auto())
+    R_BRK           = (']',                         False,  auto())
     # Repetition (0 or more)
-    L_BRC           = ('{',                     False,  auto())
-    R_BRC           = ('}',                     False,  auto())
+    L_BRC           = ('{',                         False,  auto())
+    R_BRC           = ('}',                         False,  auto())
     # Nonempty repetition (1 or more)
-    L_ABR           = ('<',                     False,  auto())
-    R_ABR           = ('>',                     False,  auto())
+    L_ABR           = ('<',                         False,  auto())
+    R_ABR           = ('>',                         False,  auto())
 
     def __init__(self, string: str, is_escaped: bool, tag: int):
         self.tag: int = tag
