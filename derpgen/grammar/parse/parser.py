@@ -1,19 +1,27 @@
 from .ast import *
 from ..tokenize import *
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 __all__ = ['Parser']
+
+
+RuleDict = Dict[str, Rule]
 
 
 class EndOfRule(Exception):
     pass
 
 
+RULES   = 'rules'
+TOKENS  = 'tokens'
+START   = 'start'
+
+
 class Parser:
     def __init__(self, tokens: List[Token]):
-        # The parser ignores whitespace.
+        # The parser ignores whitespace and comments.
         self.tokens = list(filter(lambda t: t.type not in TokenTypeClasses.WHITESPACE and
                                             t.type not in TokenTypeClasses.COMMENTS,
                                   tokens))
@@ -21,11 +29,10 @@ class Parser:
             raise ValueError  # TODO
         self.index = 0
         self.ast = None
-        self.SECTION_DISPATCH = {
-            'rules':    self.parse_rules,
-            'tokens':   self.parse_tokens,
-            'start':    self.parse_start,
-        }
+
+    @property
+    def has_tokens(self) -> bool:
+        return self.index < len(self.tokens)
 
     @property
     def token(self) -> Token:
@@ -40,30 +47,34 @@ class Parser:
     def advance(self, increment: int = 1):
         self.index += increment
 
-    def parse(self) -> AST:
-        ...
+    def parse(self) -> Tuple[RuleDict, ..., ...]:
+        rules: RuleDict = {}
+        tokens: ... = None
+        start_symbols: ... = None
+        while self.has_tokens:
+            if self.token.type not in TokenTypeClasses.SECTIONS:
+                raise RuntimeError  # TODO
+            raw_section = self.token.value
+            section = raw_section[1:-1].strip().lower()
+            self.advance()
+            if section == RULES:
+                self.parse_rules(rules)
+            elif section == TOKENS:
+                print("TOKENS parsing unimplemented.")
+                break
+            elif section == START:
+                print("START parsing unimplemented.")
+                break
+            else:
+                raise RuntimeError  # TODO
+        return rules, tokens, start_symbols
 
-    def parse_section(self):
-        if self.token.type is not TokenTypes.MODULO:
-            raise RuntimeError  # TODO
-        self.advance()
-        if self.token.type not in TokenTypeClasses.CASES:
-            raise RuntimeError  # TODO
-        section = self.token.value.lower()
-        self.advance()
-        if self.token.type is not TokenTypes.MODULO:
-            raise RuntimeError  # TODO
-        if section not in self.SECTION_DISPATCH:
-            raise RuntimeError  # TODO
-        self.advance()
-        self.SECTION_DISPATCH[section]()
-
-    def parse_rules(self) -> Dict[str, Rule]:
-        rules = {}
-        while self.token.type is not TokenTypes.MODULO:
+    def parse_rules(self, rules: RuleDict):
+        while self.token.type not in TokenTypeClasses.SECTIONS:
             rule = self.parse_rule()
+            if rule.name in rules:
+                raise RuntimeError  # TODO
             rules[rule.name] = rule
-        return rules
 
     def parse_rule(self) -> Rule:
         if self.token.type is not TokenTypes.SNAKE_CASE:
@@ -93,7 +104,8 @@ class Parser:
         parts = []
         # Keep parsing for parts until either we reach the end of the tokens or the lookahead token indicates we're done
         # with this production.
-        while (self.tokens and
+        while (self.has_tokens and
+               self.token.type not in TokenTypeClasses.SECTIONS and
                self.token.type not in TokenTypeClasses.DIVIDERS and
                self.token.type not in TokenTypeClasses.OPERATORS):
             if self.next_token is not None and self.next_token.type is TokenTypes.SUBST:
