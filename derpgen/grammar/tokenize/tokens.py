@@ -24,43 +24,43 @@ def auto() -> int:
 class TokenTypes(Enum):
     # Endmarker
     # See __init__ below for more information about how the endmarker works.
-    ENDMARKER       = ('',                          False,  ENDMARKER_TAG)
+    ENDMARKER       = (ENDMARKER_TAG,   '',                         False)
     # Whitespace
-    WHITESPACE      = (r'\s+',                      True,   auto())
-    NEWLINE         = (r'\n',                       True,   auto())
+    WHITESPACE      = (auto(),          r'\s+',                     True)
+    NEWLINE         = (auto(),          r'\n',                      True)
     # Comments
-    COMMENT         = (r'#.*',                      True,   auto())
+    COMMENT         = (auto(),          r'#.*',                     True)
     # Cases
-    SNAKE_CASE      = (r'[a-z](?:_|[a-z])*',        True,   auto())
-    CAP_SNAKE_CASE  = (r'[A-Z](?:_|[A-Z])*',        True,   auto())
-    PASCAL_CASE     = (r'[A-Z][a-zA-Z]*',           True,   auto())
-    CAMEL_CASE      = (r'[a-z][a-zA-Z]*',           True,   auto())
+    SNAKE_CASE      = (auto(),          r'[a-z](?:_|[a-z])*',       True)
+    CAP_SNAKE_CASE  = (auto(),          r'[A-Z](?:_|[A-Z])*',       True)
+    PASCAL_CASE     = (auto(),          r'[A-Z][a-zA-Z]*',          True)
+    CAMEL_CASE      = (auto(),          r'[a-z][a-zA-Z]*',          True)
     # Quotes
-    DBL_QUOTE_STR   = (r'\"((?:\\.|[^\"\\])*)\"',   True,   auto())
-    SNGL_QUOTE_STR  = (r'\'((?:\\.|[^\'\\])*)\'',   True,   auto())
+    DBL_QUOTE_STR   = (auto(),          r'\"((?:\\.|[^\"\\])*)\"',  True)
+    SNGL_QUOTE_STR  = (auto(),          r'\'((?:\\.|[^\'\\])*)\'',  True)
     # Section marker
-    SECTION         = (r'%[^%]+%',                  True,   auto())
+    SECTION         = (auto(),          r'%[^%]+%',                 True)
     # Rule dividers
-    SUBST           = ('::=',                       False,  auto())
-    STICK           = ('|',                         False,  auto())
+    SUBST           = (auto(),          '::=',                      False)
+    STICK           = (auto(),          '|',                        False)
     # Operators
-    EQUAL           = ('=',                         False,  auto())
-    RE_EQUAL        = ('^=',                        False,  auto())
-    COLON           = (':',                         False,  auto())
+    EQUAL           = (auto(),          '=',                        False)
+    RE_EQUAL        = (auto(),          '^=',                       False)
+    COLON           = (auto(),          ':',                        False)
     # Group
-    L_PAR           = ('(',                         False,  auto())
-    R_PAR           = (')',                         False,  auto())
+    L_PAR           = (auto(),          '(',                        False)
+    R_PAR           = (auto(),          ')',                        False)
     # Optional (0 or 1)
-    L_BRK           = ('[',                         False,  auto())
-    R_BRK           = (']',                         False,  auto())
+    L_BRK           = (auto(),          '[',                        False)
+    R_BRK           = (auto(),          ']',                        False)
     # Repetition (0 or more)
-    L_BRC           = ('{',                         False,  auto())
-    R_BRC           = ('}',                         False,  auto())
+    L_BRC           = (auto(),          '{',                        False)
+    R_BRC           = (auto(),          '}',                        False)
     # Nonempty repetition (1 or more)
-    L_ABR           = ('<',                         False,  auto())
-    R_ABR           = ('>',                         False,  auto())
+    L_ABR           = (auto(),          '<',                        False)
+    R_ABR           = (auto(),          '>',                        False)
 
-    def __init__(self, string: str, is_escaped: bool, tag: int):
+    def __init__(self, tag: int,  string: str, is_escaped: bool):
         self.tag: int = tag
         # The endmarker token should never match anything, because there is no regular expression that can correctly
         # match its intended use. Therefore the endmarker will need to be manually added at the end of tokenization.
