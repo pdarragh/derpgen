@@ -10,12 +10,12 @@ __all__ = ['Parser', 'ParsedGrammar']
 
 
 RuleDict = Dict[str, Rule]
-TokenDict = Dict[str, Matcher]
+TokenMatcherDict = Dict[str, Matcher]
 StartSymbolSet = Set[str]
 
 
 ParsedGrammar = NamedTuple('ParsedGrammar', [('rules', RuleDict),
-                                             ('tokens', TokenDict),
+                                             ('token_matchers', TokenMatcherDict),
                                              ('start_symbols', StartSymbolSet)])
 
 
@@ -33,11 +33,11 @@ class Parser:
             raise ValueError  # TODO
         self.index = 0
         self.rules: RuleDict = {}
-        self.tokens: TokenDict = {}
+        self.token_matchers: TokenMatcherDict = {}
         self.start_symbols: StartSymbolSet = set()
         self.SECTION_DISPATCH = {
             'rules':    self.parse_rules,
-            'tokens':   self.parse_tokens,
+            'tokens':   self.parse_token_matchers,
             'start':    self.parse_start,
         }
 
@@ -66,7 +66,7 @@ class Parser:
             section = raw_section[1:-1].strip().lower()
             self.advance()
             self.SECTION_DISPATCH[section]()
-        return ParsedGrammar(self.rules, self.tokens, self.start_symbols)
+        return ParsedGrammar(self.rules, self.token_matchers, self.start_symbols)
 
     def parse_rules(self):
         while (self.has_tokens and
@@ -198,13 +198,13 @@ class Parser:
         self.advance()
         return AliasProduction(alias)
 
-    def parse_tokens(self):
+    def parse_token_matchers(self):
         while (self.has_tokens and
                self.token.type not in TokenTypeClasses.SECTIONS):
             matcher = self.parse_token_matcher()
-            if matcher.name in self.tokens:
+            if matcher.name in self.token_matchers:
                 raise RuntimeError  # TODO
-            self.tokens[matcher.name] = matcher
+            self.token_matchers[matcher.name] = matcher
 
     def parse_token_matcher(self) -> Matcher:
         if self.token.type not in TokenTypeClasses.CAP_CASES:
