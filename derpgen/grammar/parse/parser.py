@@ -6,7 +6,7 @@ from re import compile as re_compile
 from typing import Dict, List, NamedTuple, Optional, Set
 
 
-__all__ = ['Parser', 'ParsedGrammar']
+__all__ = ['Parser', 'ParsedGrammar', 'RuleDict', 'TokenMatcherDict', 'StartSymbolSet']
 
 
 RuleDict = Dict[str, Rule]
