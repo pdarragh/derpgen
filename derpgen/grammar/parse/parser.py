@@ -118,8 +118,8 @@ class Parser:
         return NamedProduction(name, parts)
 
     def parse_part(self) -> Part:
-        if self.token.type in TokenTypeClasses.GROUPS:
-            return self.parse_group()
+        if self.token.type in TokenTypeClasses.SEQUENCES:
+            return self.parse_sequence()
         elif self.token.type in TokenTypeClasses.QUOTES:
             string = self.token.value
             self.advance()
@@ -150,15 +150,15 @@ class Parser:
         else:
             raise RuntimeError  # TODO
 
-    def parse_group(self) -> Group:
+    def parse_sequence(self) -> Sequence:
         if self.token.type is TokenTypes.L_PAR:
-            group_type = GroupType.PLAIN
+            sequence_type = SequenceType.PLAIN
         elif self.token.type is TokenTypes.L_BRK:
-            group_type = GroupType.OPTIONAL
+            sequence_type = SequenceType.OPTIONAL
         elif self.token.type is TokenTypes.L_BRC:
-            group_type = GroupType.REPETITION
+            sequence_type = SequenceType.REPETITION
         elif self.token.type is TokenTypes.L_ABR:
-            group_type = GroupType.NONEMPTY_REPETITION
+            sequence_type = SequenceType.NONEMPTY_REPETITION
         else:
             raise RuntimeError  # TODO
         expected_end_token_type = BRACE_PAIRS[self.token.type]
@@ -181,17 +181,17 @@ class Parser:
             alternates.append(parts)
             parts = []
         if parts:
-            return SequencedGroup(group_type, parts)
+            return Sequence(sequence_type, parts)
         elif alternates:
             processed_alternates = []
             for alternate_parts in alternates:
                 if len(alternate_parts) == 1:
                     processed_alternates.append(alternate_parts[0])
                 else:
-                    processed_alternates.append(SequencedGroup(GroupType.PLAIN, alternate_parts))
-            return AlternatingGroup(group_type, processed_alternates)
+                    processed_alternates.append(Sequence(sequence_type, alternate_parts))
+            return Sequence(SequenceType.ALTERNATING, processed_alternates)
         else:
-            return Group(group_type, parts)
+            return Sequence(sequence_type, parts)
 
     def parse_alias_production(self) -> AliasProduction:
         alias = self.token.value

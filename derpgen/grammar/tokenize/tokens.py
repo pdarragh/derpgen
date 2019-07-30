@@ -47,16 +47,16 @@ class TokenTypes(Enum):
     EQUAL           = (auto(),          '=',                        False)
     RE_EQUAL        = (auto(),          '^=',                       False)
     COLON           = (auto(),          ':',                        False)
-    # Group
+    # Sequences
     L_PAR           = (auto(),          '(',                        False)
     R_PAR           = (auto(),          ')',                        False)
-    # Optional (0 or 1)
+    # Optional sequences (0 or 1)
     L_BRK           = (auto(),          '[',                        False)
     R_BRK           = (auto(),          ']',                        False)
-    # Repetition (0 or more)
+    # Repeated sequences (0 or more)
     L_BRC           = (auto(),          '{',                        False)
     R_BRC           = (auto(),          '}',                        False)
-    # Nonempty repetition (1 or more)
+    # Nonempty repeated sequences (1 or more)
     L_ABR           = (auto(),          '<',                        False)
     R_ABR           = (auto(),          '>',                        False)
 
@@ -126,7 +126,7 @@ class TokenTypeClasses(Enum):
     BRACKETS        = (auto(), (TokenTypes.L_BRK, TokenTypes.R_BRK))
     BRACES          = (auto(), (TokenTypes.L_BRC, TokenTypes.R_BRC))
     ANGLE_BRACKETS  = (auto(), (TokenTypes.L_ABR, TokenTypes.R_ABR))
-    GROUPS          = (auto(), (TokenTypes.L_PAR, TokenTypes.R_PAR,
+    SEQUENCES       = (auto(), (TokenTypes.L_PAR, TokenTypes.R_PAR,
                                 TokenTypes.L_BRK, TokenTypes.R_BRK,
                                 TokenTypes.L_BRC, TokenTypes.R_BRC,
                                 TokenTypes.L_ABR, TokenTypes.R_ABR))

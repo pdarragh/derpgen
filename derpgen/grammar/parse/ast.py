@@ -3,16 +3,17 @@ from enum import Enum, auto, unique
 from typing import List, Union
 
 
-__all__ = ['GroupType', 'AST', 'SequencedGroup', 'AlternatingGroup', 'Group', 'Literal', 'DeclaredToken',
-           'PatternMatch', 'RuleMatch', 'Part', 'NamedProduction', 'AliasProduction', 'Production', 'Rule']
+__all__ = ['SequenceType', 'AST', 'Sequence', 'Literal', 'DeclaredToken', 'PatternMatch', 'RuleMatch', 'Part',
+           'NamedProduction', 'AliasProduction', 'Production', 'Rule']
 
 
 @unique
-class GroupType(Enum):
+class SequenceType(Enum):
     PLAIN               = auto()
     OPTIONAL            = auto()
     REPETITION          = auto()
     NONEMPTY_REPETITION = auto()
+    ALTERNATING         = auto()
 
 
 @dataclass
@@ -21,18 +22,9 @@ class AST:
 
 
 @dataclass
-class SequencedGroup(AST):
-    type: GroupType
-    parts: List[AST]
-
-
-@dataclass
-class AlternatingGroup(AST):
-    type: GroupType
-    alternates: List[AST]
-
-
-Group = Union[SequencedGroup, AlternatingGroup]
+class Sequence(AST):
+    type: SequenceType
+    asts: List[AST]
 
 
 @dataclass
@@ -57,7 +49,7 @@ class RuleMatch(AST):
     rule: str
 
 
-Part = Union[Group, Literal, PatternMatch, RuleMatch]
+Part = Union[Sequence, Literal, PatternMatch, RuleMatch]
 
 
 @dataclass
