@@ -3,8 +3,8 @@ from enum import Enum, auto, unique
 from typing import List, Union
 
 
-__all__ = ['SequenceType', 'AST', 'Sequence', 'Literal', 'DeclaredToken', 'PatternMatch', 'RuleMatch', 'Part',
-           'NamedProduction', 'AliasProduction', 'Production', 'Rule']
+__all__ = ['SequenceType', 'AST', 'Sequence', 'ParameterizedSequence', 'Literal', 'DeclaredToken', 'PatternMatch',
+           'RuleMatch', 'Part', 'NamedProduction', 'AliasProduction', 'Production', 'Rule']
 
 
 @unique
@@ -25,6 +25,12 @@ class AST:
 class Sequence(AST):
     type: SequenceType
     asts: List[AST]
+
+
+@dataclass
+class ParameterizedSequence(AST):
+    sequence: Sequence
+    parameter: Sequence
 
 
 @dataclass
@@ -49,7 +55,7 @@ class RuleMatch(AST):
     rule: str
 
 
-Part = Union[Sequence, Literal, PatternMatch, RuleMatch]
+Part = Union[Sequence, ParameterizedSequence, Literal, PatternMatch, RuleMatch]
 
 
 @dataclass

@@ -59,6 +59,8 @@ class TokenTypes(Enum):
     # Nonempty repeated sequences (1 or more)
     L_ABR           = (auto(),          '<',                        False)
     R_ABR           = (auto(),          '>',                        False)
+    # Sequence parameters
+    SEQ_PARAM       = (auto(),          '=<<',                      False)
 
     def __init__(self, tag: int,  string: str, is_escaped: bool):
         self.tag: int = tag

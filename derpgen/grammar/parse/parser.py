@@ -181,7 +181,7 @@ class Parser:
             alternates.append(parts)
             parts = []
         if parts:
-            return Sequence(sequence_type, parts)
+            sequence = Sequence(sequence_type, parts)
         elif alternates:
             processed_alternates = []
             for alternate_parts in alternates:
@@ -189,9 +189,15 @@ class Parser:
                     processed_alternates.append(alternate_parts[0])
                 else:
                     processed_alternates.append(Sequence(sequence_type, alternate_parts))
-            return Sequence(SequenceType.ALTERNATING, processed_alternates)
+            sequence = Sequence(SequenceType.ALTERNATING, processed_alternates)
         else:
-            return Sequence(sequence_type, parts)
+            sequence = Sequence(sequence_type, parts)
+        if self.token.type is TokenTypes.SEQ_PARAM:
+            self.advance()
+            param = self.parse_sequence()
+            return ParameterizedSequence(sequence, param)
+        else:
+            return sequence
 
     def parse_alias_production(self) -> AliasProduction:
         alias = self.token.value
