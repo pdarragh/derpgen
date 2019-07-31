@@ -66,6 +66,9 @@ class Parser:
             section = raw_section[1:-1].strip().lower()
             self.advance()
             self.SECTION_DISPATCH[section]()
+        # If there is no start symbol, use the first rule.
+        if not self.start_symbols:
+            self.start_symbols.add(next(iter(self.rules)))
         return ParsedGrammar(self.rules, self.token_matchers, self.start_symbols)
 
     def parse_rules(self):
