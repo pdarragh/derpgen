@@ -142,7 +142,7 @@ class Parser:
             # Just a match against the named rule.
             name = self.token.value
             self.advance()
-            return RuleMatch(name, name)
+            return RuleMatch(name)
         elif self.token.type in TokenTypeClasses.CAP_CASES:
             string = self.token.value
             self.advance()

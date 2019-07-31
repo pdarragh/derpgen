@@ -40,7 +40,7 @@ class Literal(AST):
 
 @dataclass
 class DeclaredToken(AST):
-    string: str
+    token: str
 
 
 @dataclass
@@ -51,7 +51,6 @@ class PatternMatch(AST):
 
 @dataclass
 class RuleMatch(AST):
-    name: str
     rule: str
 
 
