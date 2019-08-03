@@ -1,7 +1,9 @@
 from typing import Callable, Iterable, Reversible, TypeVar
 
+import functools
 
-__all__ = ['concat', 'cons', 'foldl', 'foldr']
+
+__all__ = ['concat', 'cons', 'foldl', 'foldr', 'list_product', 'partial']
 
 
 A = TypeVar('A')
@@ -31,3 +33,11 @@ def foldr(f: Callable[[A, B], B], init: B, xs: Reversible[A]) -> B:
     for x in reversed(xs):
         prev = f(x, prev)
     return prev
+
+
+def list_product(xs: Iterable[A], yss: Iterable[Iterable[A]]) -> Iterable[Iterable[A]]:
+    return concat(map(lambda l: map(partial(cons, l), yss), xs))
+
+
+partial = functools.partial
+
