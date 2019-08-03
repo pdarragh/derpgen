@@ -1,7 +1,7 @@
 from typing import Callable, Iterable, Reversible, TypeVar
 
 
-__all__ = ['concat', 'foldl', 'foldr']
+__all__ = ['concat', 'cons', 'foldl', 'foldr']
 
 
 A = TypeVar('A')
@@ -13,6 +13,10 @@ def concat(xss: Iterable[Iterable[A]]) -> Iterable[A]:
     #   xs = "exes", i.e., plural of x ("ex")
     #   xss = "exeses", i.e., plural of xs
     return [x for xs in xss for x in xs]
+
+
+def cons(x: A, xs: Iterable[A]) -> Iterable[A]:
+    return [x] + xs
 
 
 def foldl(f: Callable[[B, A], B], init: B, xs: Iterable[A]) -> B:
