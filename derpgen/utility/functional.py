@@ -3,7 +3,7 @@ from typing import Callable, Iterable, Reversible, TypeVar
 import functools
 
 
-__all__ = ['concat', 'cons', 'foldl', 'foldr', 'list_product', 'partial']
+__all__ = ['concat', 'cons', 'snoc', 'foldl', 'foldr', 'list_product', 'partial']
 
 
 A = TypeVar('A')
@@ -19,6 +19,10 @@ def concat(xss: Iterable[Iterable[A]]) -> Iterable[A]:
 
 def cons(x: A, xs: Iterable[A]) -> Iterable[A]:
     return [x] + xs
+
+
+def snoc(xs: Iterable[A], x: A) -> Iterable[A]:
+    return list(xs) + [x]
 
 
 def foldl(f: Callable[[B, A], B], init: B, xs: Iterable[A]) -> B:
