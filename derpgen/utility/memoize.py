@@ -2,7 +2,7 @@ from .eq_type import *
 from .lazy import *
 
 from functools import wraps
-from typing import Any, Callable, Dict, Tuple, TypeVar
+from typing import Any, Callable, Dict, Optional, Tuple, TypeVar
 
 
 __all__ = ['memoize', 'EqType']
@@ -16,6 +16,14 @@ Val = TypeVar('Val')
 def memoize(*eqs: EqType):
     cache: Dict[Key, Val] = {}
 
+    def clear_cache(k: Optional[Key]):
+        nonlocal cache
+        if k is None:
+            cache = {}
+        else:
+            if k in cache:
+                del(cache[k])
+
     @wraps
     def decorate(func: Callable[..., Val]):
         def wrapper(*args: Any):  # This decorator does not support keyword arguments.
@@ -25,6 +33,7 @@ def memoize(*eqs: EqType):
                 val = delay(lambda: func(*args))
                 cache[key] = val
             return force(val)
+        wrapper.clear_cache = clear_cache
         return wrapper
 
     return decorate

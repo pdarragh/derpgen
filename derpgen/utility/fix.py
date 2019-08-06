@@ -1,7 +1,7 @@
 from .eq_type import *
 
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Set, Tuple, TypeVar
+from typing import Any, Callable, Dict, Optional, Set, Tuple, TypeVar
 
 
 __all__ = ['fix', 'EqType']
@@ -36,6 +36,17 @@ def fix(mk_bottom: Callable[[], Val], *eqs: EqType):
         else:
             return val
 
+    def clear_cache(k: Optional[Key] = None):
+        nonlocal cache
+        nonlocal params
+        if k is None:
+            cache = {}
+            params = Parameters(set(), False, False)
+        else:
+            if k in cache:
+                del(cache[k])
+            params.remove(k)
+
     def f(func: Callable[..., Val], key: Key, *args: Any) -> Val:
         if is_visited(key):
             if is_cached(key):
@@ -68,6 +79,7 @@ def fix(mk_bottom: Callable[[], Val], *eqs: EqType):
                     val = f(func, key, *args)
                 params.running = False
                 return val
+        wrapper.clear_cache = clear_cache
         return wrapper
 
     return decorate
