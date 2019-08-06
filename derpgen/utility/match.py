@@ -82,7 +82,8 @@ class AttrGetFunc(Callable[[Tuple[Any], Any], Any]):
 
 def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, params: Optional[Tuple[str, ...]] = None,
           pos: int = 0, exhaustive: bool = True, omit: Optional[Set[Type]] = None, omit_recursive: bool = False,
-          same_module_only: bool = True, destructure: bool = True) -> Callable[..., Val]:
+          same_module_only: bool = True, fully_destructure: bool = True, indexed_params: bool = True
+          ) -> Callable[..., Val]:
     """
     Returns a function which will perform "pattern matching" on an input to perform dispatch based on that input's type.
     At module-load time, top-level calls to `match` will also perform some checks on the pattern table to ensure some
@@ -110,9 +111,11 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
     :param omit_recursive: when omitting classes, also omit any subclasses of omitted classes; defaults to False
     :param same_module_only: only perform exhaustiveness checking over subclasses of `base` defined in the same module
                              in which `base` was defined; defaults to True
-    :param destructure: whether to require match clause functions to provide arguments for all the parts of each
-                        matching class; defaults to True, meaning match clause functions must provide sufficient
-                        arguments for full destructuring of matched instances
+    :param fully_destructure: whether to require match clause functions to provide arguments for all the parts of each
+                              matching class; defaults to True, meaning match clause functions must provide sufficient
+                              arguments for full destructuring of matched instances
+    :param indexed_params: whether the parameters to the match clause functions are indexed; defaults to True; a False
+                           value will cause the matches to be done by name, requiring exact name matches in the classes
     :return: a function which will perform the desired pattern matching
     """
     _caller: Traceback = getframeinfo(stack()[1][0])
@@ -149,7 +152,7 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
         # Analyze the annotations of the given class. These, together with the `params`, will tell us how many arguments
         # the match clause function should have.
         func_params = list(params)
-        if destructure:
+        if fully_destructure:
             annotations: Dict[str, Any] = t.__dict__.get('__annotations__', {})
             func_params.extend(annotations.keys())
         else:
@@ -173,11 +176,15 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
             raise ClauseSignatureError(_mdfn, _mdln, t, src_ln, extra_params, missing_params)
         # Build getter-function for each parameter.
         getters: Dict[str, Callable[[List[Any], Any], Any]] = {}
+        indexed_annotations: Dict[int, str] = {i: name for i, name in enumerate(annotations.keys())}
         for i, name in enumerate(sig_params):
             if i < len(params):
                 getters[name] = ParamGetFunc(i)
             else:
-                getters[name] = AttrGetFunc(name)
+                param = name
+                if indexed_params:
+                    name = indexed_annotations[i - len(params)]
+                getters[param] = AttrGetFunc(name)
         funcs[t] = (f, getters)
 
     # Check for exhaustive patterns if necessary.
@@ -201,7 +208,7 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
             try:
                 val = gs[name](args, x)
             except Exception:
-                raise MatchError(_mdfn, _mdln, f"Could not obtain value via getter for param {name}.")
+                raise MatchError(_mdfn, _mdln, f"Could not obtain param by name: {cls.__name__}.{name}")
             call_params[name] = val
         return func(**call_params)
 
