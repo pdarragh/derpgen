@@ -1,7 +1,7 @@
 from typing import Callable, Generic, TypeVar, Union
 
 
-__all__ = ['delay', 'force']
+__all__ = ['Lazy', 'delay', 'force']
 
 
 Val = TypeVar('Val')
@@ -26,7 +26,4 @@ def delay(v: ValFunc) -> Lazy[Val]:
 
 
 def force(v: Union[Lazy[Val], Val]) -> Val:
-    if isinstance(v, Lazy):
-        return v.force()
-    else:
-        return v
+    return v.force()
