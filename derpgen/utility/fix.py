@@ -81,6 +81,7 @@ def fix(mk_bottom: Callable[[], Val], *eqs: EqType):
                     val = f(func, key, *args)
                 params.running = False
                 return val
+        wrapper.__dict__.update(func.__dict__)
         wrapper.clear_cache = clear_cache
         return wrapper
 

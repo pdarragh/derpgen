@@ -33,6 +33,7 @@ def memoize(*eqs: EqType):
                 val = delay(lambda: func(*args))
                 cache[key] = val
             return force(val)
+        wrapper.__dict__.update(func.__dict__)
         wrapper.clear_cache = clear_cache
         return wrapper
 
