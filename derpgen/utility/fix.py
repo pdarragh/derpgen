@@ -1,6 +1,7 @@
 from .eq_type import *
 
 from dataclasses import dataclass
+from functools import wraps
 from typing import Any, Callable, Dict, Optional, Set, Tuple, TypeVar
 
 
@@ -62,6 +63,7 @@ def fix(mk_bottom: Callable[[], Val], *eqs: EqType):
             return val
 
     def decorate(func: Callable[[Key], Val]):
+        @wraps(func)
         def wrapper(*args: Any):
             key = tuple(hash_of_eq(eqs[i], arg) for (i, arg) in enumerate(args))
             if params.running:
