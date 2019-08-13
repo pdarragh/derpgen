@@ -1,4 +1,6 @@
-from inspect import findsource, getframeinfo, signature, stack, Traceback
+from .rename import RENAME_MARKER
+
+from inspect import findsource, getframeinfo, getmodule, signature, stack, Traceback
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, TypeVar, Union
 
 
@@ -82,8 +84,8 @@ class AttrGetFunc(Callable[[Tuple[Any], Any], Any]):
 
 def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, params: Optional[Tuple[str, ...]] = None,
           pos: int = 0, exhaustive: bool = True, omit: Optional[Set[Type]] = None, omit_recursive: bool = False,
-          same_module_only: bool = True, fully_destructure: bool = True, indexed_params: bool = True
-          ) -> Callable[..., Val]:
+          same_module_only: bool = True, fully_destructure: bool = True, indexed_params: bool = True,
+          before_match_callback: Optional[Callable[..., Any]] = None) -> Callable[..., Val]:
     """
     Returns a function which will perform "pattern matching" on an input to perform dispatch based on that input's type.
     At module-load time, top-level calls to `match` will also perform some checks on the pattern table to ensure some
@@ -116,11 +118,16 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
                               arguments for full destructuring of matched instances
     :param indexed_params: whether the parameters to the match clause functions are indexed; defaults to True; a False
                            value will cause the matches to be done by name, requiring exact name matches in the classes
+    :param before_match_callback: a function to execute prior to executing a match, which accepts the match function and
+                                  all current parameters as arguments; can be left None to do nothing
     :return: a function which will perform the desired pattern matching
     """
-    _caller: Traceback = getframeinfo(stack()[1][0])
-    _mdfn = _caller.filename  # MDFN = Match Definition File Name.
-    _mdln = _caller.lineno  # MDLN = Match Definition Line Number.
+    _frame = stack()[1][0]
+    _caller: Traceback = getframeinfo(_frame)
+    _mdfn = _caller.filename    # MDFN = Match Definition File Name.
+    _mdln = _caller.lineno      # MDLN = Match Definition Line Number.
+    _mdm = getmodule(_frame)    # MDM  = Match Definition Module.
+    _mdmn = _mdm.__name__       # MDMN = Match Definition Module Name.
 
     if params is None:
         params = ('_match_obj',)
@@ -195,8 +202,12 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
         if missing_subclasses:
             raise NonExhaustiveMatchError(_mdfn, _mdln, missing_subclasses)
 
-    # Define the actual match function to be used.
+    # Define the actual match function.
     def do_match(*args: Any) -> Val:
+        # Give the ability to perform an action prior to matching.
+        if before_match_callback is not None:
+            before_match_callback(do_match, *args)
+        # Perform matching.
         x = args[pos]
         cls = x.__class__
         fgs = funcs.get(cls)
@@ -211,6 +222,10 @@ def match(table: Dict[Type, Callable[..., Val]], base: Optional[Type] = None, pa
                 raise MatchError(_mdfn, _mdln, f"Could not obtain param by name: {cls.__name__}.{name}")
             call_params[name] = val
         return func(**call_params)
+
+    # Mark function for renaming and fix the module assignment.
+    setattr(do_match, RENAME_MARKER, True)
+    do_match.__module__ = _mdmn
 
     # Return the match function.
     return do_match
