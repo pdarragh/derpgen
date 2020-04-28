@@ -6,6 +6,11 @@ __all__ = ['RENAME_MARKER', 'rename_marked_funcs']
 
 RENAME_MARKER = '__rename_me'
 
+# TODO:
+"""
+Instead of requiring a user call to rename_marked_funcs(), instead have functions that require the use of this to add
+their wrapped functions to a global list, and then prior to the execution of any of them run this function automatically
+"""
 
 def rename_marked_funcs():
     funcs_to_update = {}

@@ -1,0 +1,33 @@
+%rules%
+
+v ::= TrueVal 'True'
+    | FalseVal 'False'
+    | NoneVal 'None'
+    | NumberVal NUMBER
+    | StringVal STRING
+
+s ::= e
+    | AssignStmt name:ID '=' value:e
+    | ReturnStmt 'return' value:e
+    | PassStmt 'pass'
+    | IfStmt 'if' cond:e '{' t_body:s '}' ['else' '{' f_body:s '}']
+    | WhileStmt 'while' cond:e '{' body:s '}'
+    | BreakStmt 'break'
+    | ContinueStmt 'continue'
+
+t ::= AssignTopStmt name:ID '=' value:e
+    | FuncDefTopStmt 'def' name:ID '(' params:{ID}=<<(',') ')' '{' body:s '}'
+
+e ::= v
+    | CallExpr name:ID '(' params:[ID {',' ID}] ')'
+    | BinOpExpr lhs:e op:OP rhs:e
+    | PreUnOpExpr op:OP expr:e
+
+%tokens%
+
+NUMBER ^= '-?\d+'
+STRING ^= '\"((?:\\.|[^\"\\])*)\"'
+ID     ^= '[a-z](?:_|[a-z])*'
+OP     ^= '[-+/*!]'
+
+%start% t

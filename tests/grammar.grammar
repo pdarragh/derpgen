@@ -1,0 +1,20 @@
+% grammar %
+grammar ::= (NEWLINE | rule)* ENDMARKER
+
+rule        ::= Rule name:LOW_WORD '::=' ['|'] productions:(production)+{'|'}
+production  ::= NamedProduction name:CAP_WORD parts:(part)+
+              | AliasProduction alias:LOW_WORD
+part        ::= ModifiedPart actual:actual modifier:[modifier]
+              | ParameterPart name:LOW_WORD ':' part:part
+actual      ::= DQLiteralPart '"' token:DQ_STRING '"'
+              | SQLiteralPart "'" token:SQ_STRING "'"
+              | TokenPart token:ALL_CAP_WORD
+              | RuleNamePart token:LOW_WORD
+modifier    ::= QuestionMark '?'
+              |
+
+% tokens %
+NEWLINE = '\n'
+ENDMARKER = EOF
+
+% start % grammar

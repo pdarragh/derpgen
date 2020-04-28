@@ -22,7 +22,9 @@ class Lazy(Generic[Val]):
 
 
 def delay(v: ValFunc) -> Lazy[Val]:
-    return Lazy(lambda: v)
+    if not callable(v):
+        raise ValueError(f"delay expects a thunk as argument")
+    return Lazy(v)
 
 
 def force(v: Union[Lazy[Val], Val]) -> Val:
